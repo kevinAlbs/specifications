@@ -84,11 +84,11 @@ Server Specification
 Response Format
 ---------------
 
-If the aggregation with ``$changeStream`` specified completes successfully, the resultant stream will deliver documents in the following format:
+If an aggregate command with a ``$changeStream`` stage completes successfully, the response contains documents with the following structure:
 
 .. code:: typescript
 
-  {
+  class ChangeStreamDocument {
     /**
      * The id functions as an opaque token for use when resuming an interrupted
      * change stream.
@@ -155,6 +155,45 @@ If the aggregation with ``$changeStream`` specified completes successfully, the 
     removedFields: Array<String>;
   }
 
+The full response to a change stream aggregate/getMore command has the following structure:
+
+.. code:: typescript
+  /**
+   * Response to a successful aggregate.
+   */
+  {
+      ok: 1,
+      cursor: {
+         ns: String,
+         id: Int64,
+         firstBatch: Array<ChangeStreamDocument>
+      },
+      operationTime: Timestamp,
+      $clusterTime: Document,
+      /**
+       * minPromisedResumeToken is returned in MongoDB 4.2 and later.
+       */
+      minPromisedResumeToken: Document
+  }
+
+  /**
+   * Response to a successful getMore.
+   */
+  {
+      ok: 1,
+      cursor: {
+         ns: String,
+         id: Int64,
+         nextBatch: Array<ChangeStreamDocument>
+      },
+      operationTime: Timestamp,
+      $clusterTime: Document,
+      /**
+       * minPromisedResumeToken is returned in MongoDB 4.2 and later.
+       */
+      minPromisedResumeToken: Document
+  }
+
 **NOTE:** The above format is provided for illustrative purposes, and is subject to change without warning.
 
 ----------
@@ -168,6 +207,12 @@ Driver API
      * The resume token (_id) of the document the iterator last returned
      */
     private resumeToken: Document;
+
+    /**
+     * The most recent promisedMinResumeToken returned in an aggregate or
+     * getMore response. For pre-4.2 versions of MongoDB, this remains unset.
+     */
+    private minPromisedResumeToken: Document;
 
     /**
      * The pipeline of stages to append to an initial ``$changeStream`` stage
@@ -380,6 +425,8 @@ A ``ChangeStream`` is an abstraction of a `TAILABLE_AWAIT <https://github.com/mo
 
 A change stream MUST track the last resume token returned by the iterator to the user, caching it locally for use in future attempts to resume.  A driver MUST raise an error on the first response received without a resume token (e.g. the user has removed it with a pipeline stage), and close the change stream.  The error message SHOULD resemble “Cannot provide resume functionality when the resume token is missing”.
 
+If replies to aggregate and getMore commands include ``minPromisedResumeToken``, the change stream MUST cache it locally. When the change stream has returned all documents in a (possibly empty) batch (i.e. it needs to send a ``getMore``), it MUST overwrite the cached ``resumeToken`` with the value of the cached ``minPromisedResumeToken``. The ``minPromisedResumeToken`` may represent a much later resume token, so this can optimize future resumes.
+
 A change stream MUST attempt to resume a single time if it encounters any resumable error.  A change stream MUST NOT attempt to resume on any other type of error, with the exception of a “not master” server error.  If a driver receives a “not master” error (for instance, because the primary it was connected to is stepping down), it will treat the error as a resumable error and attempt to resume.
 
 In addition to tracking the most recently delivered resume token, change streams MUST also track the read preference specified when the change stream was created. In the event of a resumable error, a change stream MUST perform server selection with the original read preference before attempting to resume.
@@ -417,13 +464,17 @@ Once a ``ChangeStream`` has encountered a resumable error, it MUST attempt to re
 - If the ``ChangeStream`` has not received any changes, and ``resumeAfter`` is not specified, and the max wire version is >= ``7``:
 
     - The driver MUST execute the known aggregation command.
-    - The driver MUST specify the ``startAtOperationTime`` key set to the ``startAtOperationTime`` provided by the user or saved from the original aggregation.
+    - If the ``ChangeStream`` has a saved ``minPromisedResumeToken``:
+
+         - The driver MUST specify ``resumeAfter`` with the cached ``minPromisedResumeToken``.
+    - Else:
+
+         - The driver MUST specify the ``startAtOperationTime`` key set to the ``startAtOperationTime`` provided by the user or saved from the original aggregation.
     - The driver MUST NOT set a ``resumeAfter`` key.
-    - In this case, the ``ChangeStream`` will return all changes that occurred after the specified ``startAtOperationTime``.
 - Else:
 
     - The driver MUST execute the known aggregation command.
-    - The driver MUST specify a ``resumeAfter`` with the last known ``resumeToken``.
+    - The driver MUST specify a ``resumeAfter`` with the cached ``resumeToken``.
     - The driver MUST NOT set a ``startAtOperationTime``.
     - If a ``startAtOperationTime`` key was part of the original aggregation command, the driver MUST remove it.
     - In this case, the ``ChangeStream`` will return notifications starting with the oplog entry immediately *after* the provided token.
@@ -604,3 +655,5 @@ Changelog
 +------------+------------------------------------------------------------+
 | 2018-09-09 | Added dropDatabase to change stream operationType          |
 +------------+------------------------------------------------------------+
+| 2018-11-06 | Added ``minPromisedResumeToken``                           |
++------------+------------------------------------------------------------+`
