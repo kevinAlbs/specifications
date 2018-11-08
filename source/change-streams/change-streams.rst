@@ -171,9 +171,11 @@ The full response to a change stream aggregate/getMore command has the following
       operationTime: Timestamp,
       $clusterTime: Document,
       /**
-       * minPromisedResumeToken is returned in MongoDB 4.2 and later.
+       * resumeTokens is returned in MongoDB 4.2 and later. When present,
+       * drivers use the opaque tokens in this array to resume instead of
+       * the _id of ChangeStreamDocument.
        */
-      minPromisedResumeToken: Document
+      resumeTokens: Array<Document>
   }
 
   /**
@@ -189,9 +191,11 @@ The full response to a change stream aggregate/getMore command has the following
       operationTime: Timestamp,
       $clusterTime: Document,
       /**
-       * minPromisedResumeToken is returned in MongoDB 4.2 and later.
+       * resumeTokens is returned in MongoDB 4.2 and later. When present,
+       * drivers use the opaque tokens in this array to resume instead of
+       * the _id of ChangeStreamDocument.
        */
-      minPromisedResumeToken: Document
+      resumeTokens: Array<Document>
   }
 
 **NOTE:** The above format is provided for illustrative purposes, and is subject to change without warning.
@@ -204,15 +208,15 @@ Driver API
 
   interface ChangeStream extends Iterable<Document> {
     /**
-     * The resume token (_id) of the document the iterator last returned
+     * The token to be used during the resume process.
      */
     private resumeToken: Document;
 
     /**
-     * The most recent promisedMinResumeToken returned in an aggregate or
-     * getMore response. For pre-4.2 versions of MongoDB, this remains unset.
+     * A public getter for resumeToken. If resumeToken has not been set yet,
+     * returns a disengaged optional.
      */
-    private minPromisedResumeToken: Document;
+    public Optional<Document> getResumeToken();
 
     /**
      * The pipeline of stages to append to an initial ``$changeStream`` stage
@@ -423,9 +427,7 @@ ChangeStream
 
 A ``ChangeStream`` is an abstraction of a `TAILABLE_AWAIT <https://github.com/mongodb/specifications/blob/master/source/crud/crud.rst#read>`_ cursor, with support for resumability.  Implementors MAY choose to implement a ``ChangeStream`` as an extension of an existing tailable cursor implementation.  If the ``ChangeStream`` is implemented as a type which owns a tailable cursor, then the implementor MUST provide a method to close the change stream, as well as satisfy the requirements of extending ``Iterable<Document>``.
 
-A change stream MUST track the last resume token returned by the iterator to the user, caching it locally for use in future attempts to resume.  A driver MUST raise an error on the first response received without a resume token (e.g. the user has removed it with a pipeline stage), and close the change stream.  The error message SHOULD resemble “Cannot provide resume functionality when the resume token is missing”.
-
-If replies to aggregate and getMore commands include ``minPromisedResumeToken``, the change stream MUST cache it locally. When the change stream has returned all documents in a (possibly empty) batch (i.e. it needs to send a ``getMore``), it MUST overwrite the cached ``resumeToken`` with the value of the cached ``minPromisedResumeToken``. The ``minPromisedResumeToken`` may represent a much later resume token, so this can optimize future resumes.
+A change stream MUST locally track a resume token to use in future attempts to resume. It is referred to as ``ChangeStream::resumeToken`` in this spec, and is set by the rules described in `ChangeStream::ResumeToken`_.
 
 A change stream MUST attempt to resume a single time if it encounters any resumable error.  A change stream MUST NOT attempt to resume on any other type of error, with the exception of a “not master” server error.  If a driver receives a “not master” error (for instance, because the primary it was connected to is stepping down), it will treat the error as a resumable error and attempt to resume.
 
@@ -452,32 +454,45 @@ If neither ``startAtOperationTime`` nor ``resumeAfter`` are specified, and the m
 resumeAfter
 ^^^^^^^^^^^
 
-``resumeAfter`` is used to resume a changeStream that has been stopped to ensure that only changes starting with the log entry immediately *after* the provided token will be returned. If the resume token specified does not exist, the server will return an error. 
+``resumeAfter`` is used to resume a change stream that has been stopped to ensure that only changes starting with the log entry immediately *after* the provided token will be returned. If the resume token specified does not exist, the server will return an error.
+
+ChangeStream::resumeToken
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The locally cached ``ChangeStream::resumeToken`` MUST be updated by the following rules.
+
+Upon creating a ``ChangeStream``, if ``resumeAfter`` is set in ``ChangeStreamOptions``, then ``ChangeStream::resumeToken`` MUST be set to the value of ``resumeAfter``.
+
+Upon sending the initial ``aggregate`` or a ``getMore`` command, if the response includes ``resumeTokens``, the following rules apply:
+- If the response has an empty batch (no documents) then ``ChangeStream::resumeToken`` MUST be set to ``resumeTokens[0]`` (the only element in ``resumeTokens``).
+- Otherwise, when document ``i`` of the current batch is returned, ``ChangeStream::resumeToken`` MUST be set to ``resumeTokens[i]`` (the only element in ``resumeTokens``).
+
+Otherwise, if the response to an ``aggregate`` or ``getMore`` does not include ``resumeTokens``, ``ChangeStream::resumeToken`` MUST be set to the ``_id`` field of documents as they are returned. If no ``_id`` field exists, the driver MUST raise an error (e.g. the user has removed it with a pipeline stage), and close the change stream.  The error message SHOULD resemble "Cannot provide resume functionality when the resume token is missing".
 
 Resume Process
 ^^^^^^^^^^^^^^
+
+:changed: 4.2
 
 Once a ``ChangeStream`` has encountered a resumable error, it MUST attempt to resume one time. The process for resuming MUST follow these steps:
 
 - Perform server selection.
 - Connect to selected server.
-- If the ``ChangeStream`` has not received any changes, and ``resumeAfter`` is not specified, and the max wire version is >= ``7``:
+- If ``ChangeStream::resumeToken`` is set:
 
-    - The driver MUST execute the known aggregation command.
-    - If the ``ChangeStream`` has a saved ``minPromisedResumeToken``:
+   - The driver MUST execute the known aggregation command.
+   - The driver MUST specify the ``resumeAfter`` key set to ``ChangeStream::resumeToken``.
+   - The driver MUST NOT set a ``startAtOperationTime``.
+   - In this case, the ``ChangeStream`` will return notifications starting with the oplog entry immediately *after* the provided token.
+- Else if the max wire version is >= ``7``:
 
-         - The driver MUST specify ``resumeAfter`` with the cached ``minPromisedResumeToken``.
-    - Else:
-
-         - The driver MUST specify the ``startAtOperationTime`` key set to the ``startAtOperationTime`` provided by the user or saved from the original aggregation.
-    - The driver MUST NOT set a ``resumeAfter`` key.
+   - The driver MUST execute the known aggregation command.
+   - The driver MUST specify the ``startAtOperationTime`` key set to the ``startAtOperationTime`` provided by the user or saved from the original aggregation.
+   - The driver MUST NOT set a ``resumeAfter`` key.
+   - In this case, the ``ChangeStream`` will return all changes that occurred after the specified ``startAtOperationTime``.
 - Else:
 
-    - The driver MUST execute the known aggregation command.
-    - The driver MUST specify a ``resumeAfter`` with the cached ``resumeToken``.
-    - The driver MUST NOT set a ``startAtOperationTime``.
-    - If a ``startAtOperationTime`` key was part of the original aggregation command, the driver MUST remove it.
-    - In this case, the ``ChangeStream`` will return notifications starting with the oplog entry immediately *after* the provided token.
+   - The driver MUST execute the known aggregation command.
 
 If the server supports sessions, the resume attempt MUST use the same session as the previous attempt's command.
 
@@ -598,6 +613,14 @@ In the above example, not sending ``startAtOperationTime`` will result in the ch
 the changes that occurred while the server and client are partitioned. By sending ``startAtOperationTime``,
 the server will know to include changes from that previous point in time.
 
+---------------------------------------------------------------
+Why do we provide a public getter for the current resume token?
+---------------------------------------------------------------
+
+Users should be able to implement their own custom resume logic (e.g. save the resume token in a file and restart later). `ChangeStream::resumeToken`_ explains how we set the current ``resumeToken`` to use on resume. When possible, resume tokens are taken from the ``resumeTokens`` of an aggregate/getMore response instead of the ``_id`` of a ``ChangeDocument``. The resume tokens in ``resumeTokens`` may point to more recent entries in the oplog. This makes it much less likely that a change stream cursor will roll off of the oplog and helps performance of resumes.
+
+The ``resumeTokens`` array may not be conveniently accessible to clients (outside of using APM), so the public getter provides an easy way to implement custom resume logic.
+
 Test Plan
 =========
 
@@ -655,5 +678,5 @@ Changelog
 +------------+------------------------------------------------------------+
 | 2018-09-09 | Added dropDatabase to change stream operationType          |
 +------------+------------------------------------------------------------+
-| 2018-11-06 | Added ``minPromisedResumeToken``                           |
+| 2018-11-06 | Added resume logic for ``resumeTokens``                    |
 +------------+------------------------------------------------------------+`
