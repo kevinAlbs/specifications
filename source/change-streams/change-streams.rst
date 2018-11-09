@@ -465,7 +465,7 @@ Upon creating a ``ChangeStream``, if ``resumeAfter`` is set in ``ChangeStreamOpt
 
 Upon sending the initial ``aggregate`` or a ``getMore`` command, if the response includes ``resumeTokens``, the following rules apply:
 - If the response has an empty batch (no documents) then ``ChangeStream::resumeToken`` MUST be set to ``resumeTokens[0]`` (the only element in ``resumeTokens``).
-- Otherwise, when document ``i`` of the current batch is returned, ``ChangeStream::resumeToken`` MUST be set to ``resumeTokens[i]`` (the only element in ``resumeTokens``).
+- Otherwise, when document ``i`` of the current batch is returned, ``ChangeStream::resumeToken`` MUST be set to ``resumeTokens[i]``.
 
 Otherwise, if the response to an ``aggregate`` or ``getMore`` does not include ``resumeTokens``, ``ChangeStream::resumeToken`` MUST be set to the ``_id`` field of documents as they are returned. If no ``_id`` field exists, the driver MUST raise an error (e.g. the user has removed it with a pipeline stage), and close the change stream.  The error message SHOULD resemble "Cannot provide resume functionality when the resume token is missing".
 
@@ -548,10 +548,9 @@ Imagine a scenario in which a user wants to process each change to a collection 
 .. code:: python
 
   resumeToken = None
-  localChange = getChangeFromLocalStorage()
+  (localChange, resumeToken) = getChangeFromLocalStorage()
   if localChange:
     processChange(localChange)
-    resumeToken = localChange['_id']
 
   try:
       for change in db.collection.watch([...], resumeAfter=resumeToken):
