@@ -213,8 +213,7 @@ Driver API
     private resumeToken: Document;
 
     /**
-     * A public getter for resumeToken. If resumeToken has not been set yet,
-     * returns a disengaged optional.
+     * A public getter for resumeToken.
      */
     public Optional<Document> getResumeToken();
 
