@@ -98,7 +98,7 @@ If an aggregate command with a ``$changeStream`` stage completes successfully, t
     /**
      * Describes the type of operation represented in this change notification.
      */
-    operationType: "insert" | "update" | "replace" | "delete" | "invalidate" | "drop" | "dropDatabase";
+    operationType: "insert" | "update" | "replace" | "delete" | "invalidate" | "drop" | "dropDatabase" | "rename";
 
     /**
      * Contains two fields: “db” and “coll” containing the database and
@@ -158,6 +158,7 @@ If an aggregate command with a ``$changeStream`` stage completes successfully, t
 The responses to a change stream aggregate or getMore have the following structures:
 
 .. code:: typescript
+
   /**
    * Response to a successful aggregate.
    */
@@ -463,26 +464,26 @@ Once a ``ChangeStream`` has encountered a resumable error, it MUST attempt to re
 - Connect to selected server.
 - If the ``ChangeStream`` has not received any changes, and ``resumeAfter`` is not specified, and the max wire version is >= ``7``:
 
-    - The driver MUST execute the known aggregation command.
-    - If the ``ChangeStream`` has a saved ``postBatchResumeToken``:
+  - The driver MUST execute the known aggregation command.
+  - If the ``ChangeStream`` has a saved ``postBatchResumeToken``:
 
-         - The driver MUST specify ``resumeAfter`` with the cached ``postBatchResumeToken``.
-    - Else:
+    - The driver MUST specify ``resumeAfter`` with the cached ``postBatchResumeToken``.
+  - Else:
 
-         - The driver MUST specify the ``startAtOperationTime`` key set to the ``startAtOperationTime`` provided by the user or saved from the original aggregation.
+    - The driver MUST specify the ``startAtOperationTime`` key set to the ``startAtOperationTime`` provided by the user or saved from the original aggregation.
     - The driver MUST NOT set a ``resumeAfter`` key.
 - Else:
 
-    - The driver MUST execute the known aggregation command.
-    - If the ``ChangeStream`` has returned all documents in the most recent batch (or the most recent batch was empty) and has a cached ``postBatchResumeToken``:
+  - The driver MUST execute the known aggregation command.
+  - If the ``ChangeStream`` has returned all documents in the most recent batch (or the most recent batch was empty) and has a cached ``postBatchResumeToken``:
 
-        - The driver MUST specify a ``resumeAfter`` with the cached ``postBatchResumeToken``.
-    - Else:
+    - The driver MUST specify a ``resumeAfter`` with the cached ``postBatchResumeToken``.
+  - Else:
 
-        - The driver MUST specify a ``resumeAfter`` with the cached ``documentResumeToken``.
-    - The driver MUST NOT set a ``startAtOperationTime``.
-    - If a ``startAtOperationTime`` key was part of the original aggregation command, the driver MUST remove it.
-    - In this case, the ``ChangeStream`` will return notifications starting with the oplog entry immediately *after* the provided token.
+    - The driver MUST specify a ``resumeAfter`` with the cached ``documentResumeToken``.
+  - The driver MUST NOT set a ``startAtOperationTime``.
+  - If a ``startAtOperationTime`` key was part of the original aggregation command, the driver MUST remove it.
+  - In this case, the ``ChangeStream`` will return notifications starting with the oplog entry immediately *after* the provided token.
 
 If the server supports sessions, the resume attempt MUST use the same session as the previous attempt's command.
 
