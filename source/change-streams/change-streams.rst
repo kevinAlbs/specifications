@@ -455,8 +455,6 @@ resumeAfter
 
 ``resumeAfter`` is used to resume a ``ChangeStream`` that has been stopped to ensure that only changes starting with the log entry immediately *after* the provided token will be returned. If the resume token specified does not exist, the server will return an error.
 
-.. _Resume Process:
-
 Resume Process
 ^^^^^^^^^^^^^^
 
@@ -593,8 +591,6 @@ Why are ChangeStreams required to retry once on a resumable error?
 ------------------------------------------------------------------
 
 User experience is of the utmost importance. Errors not originating from the server are generally network errors, and network errors can be transient.  Attempting to resume an interrupted change stream after the initial error allows for a seamless experience for the user, while subsequent network errors are likely to be an outage which can then be exposed to the user with greater confidence.
-
-.. _Why do we allow access to the resume token to users:
 
 ---------------------------------------------------
 Why do we allow access to the resume token to users
