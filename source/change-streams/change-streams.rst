@@ -448,12 +448,14 @@ The server expects ``startAtOperationTime`` as a BSON Timestamp. Drivers MUST al
 
 ``startAtOperationTime`` and ``resumeAfter`` are mutually exclusive; if both ``startAtOperationTime`` and ``resumeAfter`` are set, the server will return an error. Drivers MUST NOT throw a custom error, and MUST defer to the server error.
 
-If neither ``startAtOperationTime`` nor ``resumeAfter`` are specified, and the max wire version is >= ``7``, and the initial ``aggregate`` command does not return a documentResumeToken (indicating no results) or a postBatchResumeToken, the ``ChangeStream`` MUST save the ``operationTime`` from the initial ``aggregate`` command when it returns.
+If neither ``startAtOperationTime`` nor ``resumeAfter`` are specified, and the max wire version is >= ``7``, and the initial ``aggregate`` command does not return a ``documentResumeToken`` (indicating no results) or a ``postBatchResumeToken``, the ``ChangeStream`` MUST save the ``operationTime`` from the initial ``aggregate`` command when it returns.
 
 resumeAfter
 ^^^^^^^^^^^
 
-``resumeAfter`` is used to resume a changeStream that has been stopped to ensure that only changes starting with the log entry immediately *after* the provided token will be returned. If the resume token specified does not exist, the server will return an error. 
+``resumeAfter`` is used to resume a ``ChangeStream`` that has been stopped to ensure that only changes starting with the log entry immediately *after* the provided token will be returned. If the resume token specified does not exist, the server will return an error.
+
+.. _resumeProcess:
 
 Resume Process
 ^^^^^^^^^^^^^^
@@ -462,7 +464,7 @@ Once a ``ChangeStream`` has encountered a resumable error, it MUST attempt to re
 
 - Perform server selection.
 - Connect to selected server.
-- If the ``ChangeStream`` has not received any changes, and ``resumeAfter`` is not specified, and the max wire version is >= ``7``:
+- If the ``ChangeStream`` has no cached ``documentResumeToken``, and ``resumeAfter`` is not specified, and the max wire version is >= ``7``:
 
   - The driver MUST execute the known aggregation command.
   - If the ``ChangeStream`` has a saved ``postBatchResumeToken``:
@@ -495,14 +497,14 @@ Exposing All Resume Tokens
 
 :since: 4.2
 
-Users can retrieve the ``documentResumeToken`` by inspecting the _id on each ``ChangeDocument``. But since MongoDB 4.2, aggregate and getMore responses also include a ``postBatchResumeToken``. Drivers use one or the other when automatically resuming, as described in the :ref:`Resume Process`.
+Users can retrieve the ``documentResumeToken`` by inspecting the _id on each ``ChangeDocument``. But since MongoDB 4.2, aggregate and getMore responses also include a ``postBatchResumeToken``. Drivers use one or the other when automatically resuming, as described in resumeProcess_.
 
 Drivers MUST expose a mechanism to retrieve the same resume token that would be used to automatically resume. It MUST be possible to use this mechanism after iterating every document *and* after every response to a getMore (including empty responses). Drivers have two options to implement this.
 
 Option 1: ChangeStream::getResumeToken()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-..code:: typescript
+.. code:: typescript
 
   interface ChangeStream extends Iterable<Document> {
     /**
@@ -512,7 +514,7 @@ Option 1: ChangeStream::getResumeToken()
     public getResumeToken() Optional<Document>;
   }
 
-This method returns the cached ``documentResumeToken`` or ``postBatchResumeToken`` following rules from the :ref:`Resume Process`:
+This method returns the cached ``documentResumeToken`` or ``postBatchResumeToken`` following rules from resumeProcess_:
 
 - If the ``ChangeStream`` has no cached ``documentResumeToken`` or ``postBatchResumeToken`` this returns an unset optional.
 - If the ``ChangeStream`` has a cached ``postBatchResumeToken`` and has returned all documents in the most recent batch (or the most recent batch was empty) this returns the ``postBatchResumeToken``.
@@ -531,7 +533,7 @@ Allow users to set a callback to listen for new resume tokens. The exact interfa
 
 A possible interface for this callback MAY look like:
 
-..code:: typescript
+.. code:: typescript
 
   interface ChangeStream extends Iterable<Document> {
     /**
@@ -550,7 +552,7 @@ Synchronous drivers MUST provide a way to iterate a change stream without blocki
 
 Although the implementation of tailable awaitData cursors is not specified, this MAY be implemented with a ``tryNext`` method on the change stream cursor.
 
-All drivers MUST document how users can iterate a change stream and receive *all* resume token updates. :ref:`Why do we allow access to the resume token to users` shows an example. The documentation MUST state that users intending to store the resume token should use this method to get the most up to date resume token.
+All drivers MUST document how users can iterate a change stream and receive *all* resume token updates. whyAllowAccessToResumeTokens_ shows an example. The documentation MUST state that users intending to store the resume token should use this method to get the most up to date resume token.
 
 Notes and Restrictions
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -591,6 +593,8 @@ Why are ChangeStreams required to retry once on a resumable error?
 ------------------------------------------------------------------
 
 User experience is of the utmost importance. Errors not originating from the server are generally network errors, and network errors can be transient.  Attempting to resume an interrupted change stream after the initial error allows for a seamless experience for the user, while subsequent network errors are likely to be an outage which can then be exposed to the user with greater confidence.
+
+.. _whyAllowAccessToResumeTokens:
 
 ---------------------------------------------------
 Why do we allow access to the resume token to users
