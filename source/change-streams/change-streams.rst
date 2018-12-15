@@ -155,7 +155,7 @@ If an aggregate command with a ``$changeStream`` stage completes successfully, t
     removedFields: Array<String>;
   }
 
-The full response to a change stream aggregate/getMore command has the following structure:
+The responses to a change stream aggregate or getMore have the following structures:
 
 .. code:: typescript
   /**
@@ -425,7 +425,7 @@ A ``ChangeStream`` is an abstraction of a `TAILABLE_AWAIT <https://github.com/mo
 
 A change stream MUST track the last resume token returned by the iterator to the user, caching it locally for use in future attempts to resume.  A driver MUST raise an error on the first response received without a resume token (e.g. the user has removed it with a pipeline stage), and close the change stream.  The error message SHOULD resemble “Cannot provide resume functionality when the resume token is missing”.
 
-A change stream MUST track the latest ``postBatchResumeToken`` included in an aggregate or getMore response if available. The cached ``postBatchResumeToken`` may represent a much more recent resume token than the most recent document resume token.
+A change stream MUST track the latest ``postBatchResumeToken`` included in an aggregate or getMore response if available.
 
 A change stream MUST attempt to resume a single time if it encounters any resumable error.  A change stream MUST NOT attempt to resume on any other type of error, with the exception of a “not master” server error.  If a driver receives a “not master” error (for instance, because the primary it was connected to is stepping down), it will treat the error as a resumable error and attempt to resume.
 
@@ -474,7 +474,7 @@ Once a ``ChangeStream`` has encountered a resumable error, it MUST attempt to re
 - Else:
 
     - The driver MUST execute the known aggregation command.
-    - If the ``ChangeStream`` has returned all documents in the most recent batch (or the most recent batch was empty):
+    - If the ``ChangeStream`` has returned all documents in the most recent batch (or the most recent batch was empty) and has a cached ``postBatchResumeToken``:
 
         - The driver MUST specify a ``resumeAfter`` with the cached ``postBatchResumeToken``.
     - Else:
@@ -516,18 +516,18 @@ This method returns the cached ``documentResumeToken`` or ``postBatchResumeToken
 - If the ``ChangeStream`` has a cached ``postBatchResumeToken`` and has returned all documents in the most recent batch (or the most recent batch was empty) this returns the ``postBatchResumeToken``.
 - Otherwise, this returns the cached ``documentResumeToken``.
 
-This MUST be implemented in synchronous drivers. This MAY be implemented in asychronous drivers.
+This MUST be implemented in synchronous drivers. This MAY be implemented in asynchronous drivers.
 
 Option 2: Event Emitted for Resume Token
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A callback or emitted event representing a new resume token that would be used to resume. The exact interface is up to the driver, but must meet the following criteria:
+Allow users to set a callback to listen for new resume tokens. The exact interface is up to the driver, but it MUST meet these criteria:
 
-- The callback should be set in the same manner as a callback used for receiving change documents.
-- The callback MUST take a resume token as an argument.
+- The callback is set in the same manner as a callback used for receiving change documents.
+- The callback accepts a resume token as an argument.
 - The callback (or event) MAY include an optional ChangeDocument, which is unset when called with resume tokens sourced from ``postBatchResumeToken``.
 
-Possible interfaces for this callback MAY look like:
+A possible interface for this callback MAY look like:
 
 ..code:: typescript
   interface ChangeStream extends Iterable<Document> {
@@ -538,12 +538,12 @@ Possible interfaces for this callback MAY look like:
     public onResumeTokenChanged(ResumeTokenCallback:(Document resumeToken) => void);
   }
 
-This MUST not be implemented in synchronous drivers. This MAY be implemented in asychronous drivers.
+This MUST not be implemented in synchronous drivers. This MAY be implemented in asynchronous drivers.
 
 Not Blocking on Iteration
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Synchronous drivers must provide a way to iterate a change stream without blocking until a change document is returned. This MUST return control back to the user after empty getMore responses. This allows users to call ``ChangeStream::getResumeToken()`` after iterating every document and after every getMore response.
+Synchronous drivers MUST provide a way to iterate a change stream without blocking until a change document is returned. This MUST return control back to the user after empty getMore responses. This allows users to call ``ChangeStream::getResumeToken()`` after iterating every document and after every getMore response.
 
 Although the implementation of tailable awaitData cursors is not specified, this MAY be implemented with a ``tryNext`` method on the change stream cursor.
 
@@ -608,7 +608,7 @@ Imagine a scenario in which a user wants to process each change to a collection 
       while True:
           change = change_stream.try_next()
           persistResumeTokenToLocalStorage(change_stream.get_resume_token())
-          if (change):
+          if change:
             persistChangeToLocalStorage(change)
             processChange(change)
   except Exception:
@@ -667,15 +667,15 @@ In the above example, not sending ``startAtOperationTime`` will result in the ch
 the changes that occurred while the server and client are partitioned. By sending ``startAtOperationTime``,
 the server will know to include changes from that previous point in time.
 
---------------------------------------------------------------------------
-Why do we need to provide a way for users to get the postBatchResumeToken?
---------------------------------------------------------------------------
+--------------------------------------------------
+Why do we need to expose the postBatchResumeToken?
+--------------------------------------------------
 
-Resume tokens represent a point in the oplog. The resume tokens attached to the ``_id`` of a document correspond to the oplog entries of the document. But the ``postBatchResumeToken`` represents the oplog entry the change stream has scanned up to on the server. This can be a much more recent oplog entry. 
+Resume tokens refer to an oplog entry. The resume token from the ``_id`` of a document corresponds the oplog entry of the change. The ``postBatchResumeToken`` represents the oplog entry the change stream has scanned up to on the server (not necessarily a matching change). This can be a much more recent oplog entry, and should be used to resume when possible.
 
-Attempting to resume with an old resume token is more likely to degrade performance since the server needs to scan through more oplog entries. Or worse, if the resume token is older than the last oplog entry on the server, then resuming is impossible.
+Attempting to resume with an old resume token may degrade server performance since the server needs to scan through more oplog entries. Worse, if the resume token is older than the last oplog entry stored on the server, then resuming is impossible.
 
-Imagine the change stream matches only a small subset of events. On a ``getMore`` the server scans the oplog for ``maxAwaitTimeMS`` but finds no results matching the change stream's pipeline and returns an empty response (still containing a ``postBatchResumeToken``). There may be a long sequence of these empty responses. Then due to a network error, the change stream tries resuming. If we tried resuming with the cached ``documentResumeToken`` this effectively throws out all of the oplog scanning the server had done for the long sequence of getMores with empty responses. But resuming with the last ``postBatchResumeToken`` skips the unnecessary scanning of unmatched oplog entries.
+Imagine the change stream matches a very small percentage of events. On a ``getMore`` the server scans the oplog for the duration of ``maxAwaitTimeMS`` but finds no matching entries and returns an empty response (still containing a ``postBatchResumeToken``). There may be a long sequence of empty responses. Then due to a network error, the change stream tries resuming. If we tried resuming with the cached ``documentResumeToken`` this throws out the oplog scanning the server had done for the long sequence of getMores with empty responses. But resuming with the last ``postBatchResumeToken`` skips the unnecessary scanning of unmatched oplog entries.
 
 Test Plan
 =========
