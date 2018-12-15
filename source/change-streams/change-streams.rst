@@ -503,6 +503,7 @@ Option 1: ChangeStream::getResumeToken()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ..code:: typescript
+
   interface ChangeStream extends Iterable<Document> {
     /**
      * Returns a resume token that should be used to resume after the most
@@ -531,6 +532,7 @@ Allow users to set a callback to listen for new resume tokens. The exact interfa
 A possible interface for this callback MAY look like:
 
 ..code:: typescript
+
   interface ChangeStream extends Iterable<Document> {
     /**
      * Returns a resume token that should be used to resume after the most
