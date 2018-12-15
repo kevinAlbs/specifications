@@ -455,7 +455,7 @@ resumeAfter
 
 ``resumeAfter`` is used to resume a ``ChangeStream`` that has been stopped to ensure that only changes starting with the log entry immediately *after* the provided token will be returned. If the resume token specified does not exist, the server will return an error.
 
-.. _resumeProcess:
+.. _Resume Process:
 
 Resume Process
 ^^^^^^^^^^^^^^
@@ -497,7 +497,7 @@ Exposing All Resume Tokens
 
 :since: 4.2
 
-Users can retrieve the ``documentResumeToken`` by inspecting the _id on each ``ChangeDocument``. But since MongoDB 4.2, aggregate and getMore responses also include a ``postBatchResumeToken``. Drivers use one or the other when automatically resuming, as described in resumeProcess_.
+Users can retrieve the ``documentResumeToken`` by inspecting the _id on each ``ChangeDocument``. But since MongoDB 4.2, aggregate and getMore responses also include a ``postBatchResumeToken``. Drivers use one or the other when automatically resuming, as described in `Resume Process`_.
 
 Drivers MUST expose a mechanism to retrieve the same resume token that would be used to automatically resume. It MUST be possible to use this mechanism after iterating every document *and* after every response to a getMore (including empty responses). Drivers have two options to implement this.
 
@@ -514,7 +514,7 @@ Option 1: ChangeStream::getResumeToken()
     public getResumeToken() Optional<Document>;
   }
 
-This method returns the cached ``documentResumeToken`` or ``postBatchResumeToken`` following rules from resumeProcess_:
+This method returns the cached ``documentResumeToken`` or ``postBatchResumeToken`` following rules from `Resume Process`_:
 
 - If the ``ChangeStream`` has no cached ``documentResumeToken`` or ``postBatchResumeToken`` this returns an unset optional.
 - If the ``ChangeStream`` has a cached ``postBatchResumeToken`` and has returned all documents in the most recent batch (or the most recent batch was empty) this returns the ``postBatchResumeToken``.
@@ -552,7 +552,7 @@ Synchronous drivers MUST provide a way to iterate a change stream without blocki
 
 Although the implementation of tailable awaitData cursors is not specified, this MAY be implemented with a ``tryNext`` method on the change stream cursor.
 
-All drivers MUST document how users can iterate a change stream and receive *all* resume token updates. whyAllowAccessToResumeTokens_ shows an example. The documentation MUST state that users intending to store the resume token should use this method to get the most up to date resume token.
+All drivers MUST document how users can iterate a change stream and receive *all* resume token updates. `Why do we allow access to the resume token to users`_ shows an example. The documentation MUST state that users intending to store the resume token should use this method to get the most up to date resume token.
 
 Notes and Restrictions
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -594,7 +594,7 @@ Why are ChangeStreams required to retry once on a resumable error?
 
 User experience is of the utmost importance. Errors not originating from the server are generally network errors, and network errors can be transient.  Attempting to resume an interrupted change stream after the initial error allows for a seamless experience for the user, while subsequent network errors are likely to be an outage which can then be exposed to the user with greater confidence.
 
-.. _whyAllowAccessToResumeTokens:
+.. _Why do we allow access to the resume token to users:
 
 ---------------------------------------------------
 Why do we allow access to the resume token to users
