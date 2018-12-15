@@ -694,9 +694,9 @@ There should be no backwards compatibility concerns.
 Reference Implementations
 =========================
 
- - NODE (NODE-1055)
- - PYTHON (PYTHON-1338)
- - RUBY (RUBY-1228)
+- NODE (NODE-1055)
+- PYTHON (PYTHON-1338)
+- RUBY (RUBY-1228)
 
 Changelog
 =========
