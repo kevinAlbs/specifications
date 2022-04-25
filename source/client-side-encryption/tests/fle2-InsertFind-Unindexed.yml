@@ -9,6 +9,7 @@ encrypted_fields: {
         {
           "keyId": {
               "$binary": {
+                # Hex of _id is: 12345678123498761234123456789012
                 "base64": "EjRWeBI0mHYSNBI0VniQEg==",
                 "subType": "04"
               }
@@ -22,6 +23,7 @@ key_vault_data: [
   {
     "_id": {
         "$binary": {
+            # Hex of _id is: 12345678123498761234123456789012
             "base64": "EjRWeBI0mHYSNBI0VniQEg==",
             "subType": "04"
         }
@@ -91,6 +93,7 @@ tests:
                               "$in": [
                                   {
                                       "$binary": {
+                                          # Hex of _id is: 12345678123498761234123456789012
                                           "base64": "EjRWeBI0mHYSNBI0VniQEg==",
                                           "subType": "04"
                                       }
