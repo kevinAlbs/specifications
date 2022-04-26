@@ -162,7 +162,9 @@
             "command": {
               "find": "default",
               "filter": {
-                "_id": 1
+                "_id": {
+                  "$eq": 1
+                }
               }
             },
             "command_name": "find"
