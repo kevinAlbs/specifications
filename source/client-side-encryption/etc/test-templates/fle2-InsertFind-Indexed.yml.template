@@ -3,14 +3,14 @@ runOn:
 database_name: &database_name "default"
 collection_name: &collection_name "default"
 data: []
-encrypted_fields: {'fields': [{'keyId': {'$binary': {'base64': 'EjRWeBI0mHYSNBI0VniQEg==', 'subType': '04'}}, 'path': 'encryptedIndexed', 'bsonType': 'string', 'queries': {'queryType': 'equality', 'contention': {'$numberLong': '0'}}}, {'keyId': {'$binary': {'base64': 'q83vqxI0mHYSNBI0VniQEg==', 'subType': '04'}}, 'path': 'encryptedUnindexed', 'bsonType': 'string'}]}
-key_vault_data: [ {'_id': {'$binary': {'base64': 'EjRWeBI0mHYSNBI0VniQEg==', 'subType': '04'}}, 'keyMaterial': {'$binary': {'base64': 'sHe0kz57YW7v8g9VP9sf/+K1ex4JqKc5rf/URX3n3p8XdZ6+15uXPaSayC6adWbNxkFskuMCOifDoTT+rkqMtFkDclOy884RuGGtUysq3X7zkAWYTKi8QAfKkajvVbZl2y23UqgVasdQu3OVBQCrH/xY00nNAs/52e958nVjBuzQkSb1T8pKJAyjZsHJ60+FtnfafDZSTAIBJYn7UWBCwQ==', 'subType': '00'}}, 'creationDate': {'$date': {'$numberLong': '1648914851981'}}, 'updateDate': {'$date': {'$numberLong': '1648914851981'}}, 'status': {'$numberInt': '0'}, 'masterKey': {'provider': 'local'}} ]
+encrypted_fields: {{ yamlfile("encryptedFields.yml") }}
+key_vault_data: [ {{ yamlfile("keys/key1-document.yml") }} ]
 tests:
   - description: "Insert and find FLE2 indexed field"
     clientOptions:
       autoEncryptOpts:
         kmsProviders:
-          local: {'key': {'$binary': {'base64': 'Mng0NCt4ZHVUYUJCa1kxNkVyNUR1QURhZ2h2UzR2d2RrZzh0cFBwM3R6NmdWMDFBMUN3YkQ5aXRRMkhGRGdQV09wOGVNYUMxT2k3NjZKelhaQmRCZGJkTXVyZG9uSjFk', 'subType': '00'}}}
+          local: {{ local_provider() }}
     operations:
       - name: insertOne
         arguments:
@@ -34,7 +34,7 @@ tests:
                       {
                           "_id": {
                               "$in": [
-                                {'$binary': {'base64': 'EjRWeBI0mHYSNBI0VniQEg==', 'subType': '04'}}
+                                {{ yamlfile("keys/key1-id.yml") }}
                               ]
                           }
                       },

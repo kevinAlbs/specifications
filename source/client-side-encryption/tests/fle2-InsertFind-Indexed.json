@@ -16,7 +16,7 @@
             "subType": "04"
           }
         },
-        "path": "ssn",
+        "path": "encryptedIndexed",
         "bsonType": "string",
         "queries": {
           "queryType": "equality",
@@ -24,6 +24,16 @@
             "$numberLong": "0"
           }
         }
+      },
+      {
+        "keyId": {
+          "$binary": {
+            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+            "subType": "04"
+          }
+        },
+        "path": "encryptedUnindexed",
+        "bsonType": "string"
       }
     ]
   },
@@ -82,7 +92,7 @@
           "arguments": {
             "document": {
               "_id": 1,
-              "ssn": "123"
+              "encryptedIndexed": "123"
             }
           }
         },
@@ -90,13 +100,13 @@
           "name": "find",
           "arguments": {
             "filter": {
-              "ssn": "123"
+              "encryptedIndexed": "123"
             }
           },
           "result": [
             {
               "_id": 1,
-              "ssn": "123"
+              "encryptedIndexed": "123"
             }
           ]
         }
@@ -153,7 +163,7 @@
               "documents": [
                 {
                   "_id": 1,
-                  "ssn": {
+                  "encryptedIndexed": {
                     "$$type": "binData"
                   }
                 }
@@ -168,7 +178,7 @@
             "command": {
               "find": "default",
               "filter": {
-                "ssn": {
+                "encryptedIndexed": {
                   "$eq": {
                     "$binary": {
                       "base64": "BYkAAAAFZAAgAAAAAPGmZcUzdE/FPILvRSyAScGvZparGI2y9rJ/vSBxgCujBXMAIAAAAACi1RjmndKqgnXy7xb22RzUbnZl1sOZRXPOC0KcJkAxmQVjACAAAAAAWuidNu47c9A4Clic3DvFhn1AQJVC+FJtoE5bGZuz6PsSY20AAAAAAAAAAAAA",
@@ -187,7 +197,7 @@
           "data": [
             {
               "_id": 1,
-              "ssn": {
+              "encryptedIndexed": {
                 "$$type": "binData"
               }
             }
