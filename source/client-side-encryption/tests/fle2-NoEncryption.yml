@@ -12,7 +12,7 @@ encrypted_fields: {
 }
 
 tests:
-  - description: "encryptionInformation is added without encryption"
+  - description: "encryptionInformation is omitted on insert when no indexed encrypted payloads are present"
     clientOptions:
       autoEncryptOpts:
         kmsProviders:
@@ -44,19 +44,6 @@ tests:
             insert: *collection_name
             documents:
               - *doc0
-            encryptionInformation: {
-                "type": {
-                    "$numberInt": "1"
-                },
-                "schema": {
-                    "default.default": {
-                        "fields": [],
-                        "escCollection": "enxcol_.default.esc",
-                        "eccCollection": "enxcol_.default.ecc",
-                        "ecocCollection": "enxcol_.default.ecoc"
-                    }
-                }
-              }
             ordered: true
           command_name: insert
     outcome:
