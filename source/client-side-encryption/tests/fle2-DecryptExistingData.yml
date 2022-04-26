@@ -4,6 +4,8 @@ database_name: &database_name "default"
 collection_name: &collection_name "default"
 
 data: [
+  # TODO: remove doc0. Inserting an FLE2IndexedEqualityEncryptedValue directly does not update other required state.
+  # E.g. __safeContent__ or the state collections.
   &doc0 {
     "_id": 1,
     "encryptedIndexed": {
