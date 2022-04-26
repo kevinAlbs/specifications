@@ -502,33 +502,6 @@
                 "_id": {
                   "$eq": 1
                 }
-              },
-              "encryptionInformation": {
-                "type": {
-                  "$numberInt": "1"
-                },
-                "schema": {
-                  "default.default": {
-                    "fields": [
-                      {
-                        "keyId": {
-                          "$binary": {
-                            "base64": "EjRWeBI0mHYSNBI0VniQEg==",
-                            "subType": "04"
-                          }
-                        },
-                        "path": "encryptedIndexed",
-                        "bsonType": "string",
-                        "queries": {
-                          "queryType": "equality",
-                          "contention": {
-                            "$numberLong": "0"
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
               }
             },
             "command_name": "find"

@@ -309,14 +309,6 @@ tests:
           command:
             find: *collection_name
             filter: { "_id": { "$eq": 1 }}
-            encryptionInformation: {
-                "type": {
-                    "$numberInt": "1"
-                },
-                "schema": {
-                    "default.default": *encrypted_fields
-                }
-            }
           command_name: find
     outcome:
       collection:
