@@ -13,7 +13,7 @@
   },
   "tests": [
     {
-      "description": "encryptionInformation is omitted on insert when no indexed encrypted payloads are present",
+      "description": "insert with no encryption succeeds",
       "clientOptions": {
         "autoEncryptOpts": {
           "kmsProviders": {
