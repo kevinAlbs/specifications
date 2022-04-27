@@ -24,6 +24,16 @@
             "$numberLong": "0"
           }
         }
+      },
+      {
+        "keyId": {
+          "$binary": {
+            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+            "subType": "04"
+          }
+        },
+        "path": "encryptedUnindexed",
+        "bsonType": "string"
       }
     ]
   },
@@ -157,9 +167,7 @@
               ],
               "ordered": true,
               "encryptionInformation": {
-                "type": {
-                  "$numberInt": "1"
-                },
+                "type": 1,
                 "schema": {
                   "default.default": {
                     "fields": [
@@ -178,6 +186,16 @@
                             "$numberLong": "0"
                           }
                         }
+                      },
+                      {
+                        "keyId": {
+                          "$binary": {
+                            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+                            "subType": "04"
+                          }
+                        },
+                        "path": "encryptedUnindexed",
+                        "bsonType": "string"
                       }
                     ]
                   }
@@ -207,9 +225,7 @@
                 }
               ],
               "encryptionInformation": {
-                "type": {
-                  "$numberInt": "1"
-                },
+                "type": 1,
                 "schema": {
                   "default.default": {
                     "fields": [
@@ -228,6 +244,16 @@
                             "$numberLong": "0"
                           }
                         }
+                      },
+                      {
+                        "keyId": {
+                          "$binary": {
+                            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+                            "subType": "04"
+                          }
+                        },
+                        "path": "encryptedUnindexed",
+                        "bsonType": "string"
                       }
                     ]
                   }
