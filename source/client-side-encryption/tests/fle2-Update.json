@@ -24,6 +24,16 @@
             "$numberLong": "0"
           }
         }
+      },
+      {
+        "keyId": {
+          "$binary": {
+            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+            "subType": "04"
+          }
+        },
+        "path": "encryptedUnindexed",
+        "bsonType": "string"
       }
     ]
   },
@@ -164,9 +174,7 @@
               ],
               "ordered": true,
               "encryptionInformation": {
-                "type": {
-                  "$numberInt": "1"
-                },
+                "type": 1,
                 "schema": {
                   "default.default": {
                     "fields": [
@@ -185,6 +193,16 @@
                             "$numberLong": "0"
                           }
                         }
+                      },
+                      {
+                        "keyId": {
+                          "$binary": {
+                            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+                            "subType": "04"
+                          }
+                        },
+                        "path": "encryptedUnindexed",
+                        "bsonType": "string"
                       }
                     ]
                   }
@@ -218,9 +236,7 @@
                 }
               ],
               "encryptionInformation": {
-                "type": {
-                  "$numberInt": "1"
-                },
+                "type": 1,
                 "schema": {
                   "default.default": {
                     "fields": [
@@ -239,6 +255,16 @@
                             "$numberLong": "0"
                           }
                         }
+                      },
+                      {
+                        "keyId": {
+                          "$binary": {
+                            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+                            "subType": "04"
+                          }
+                        },
+                        "path": "encryptedUnindexed",
+                        "bsonType": "string"
                       }
                     ]
                   }
@@ -398,9 +424,7 @@
               ],
               "ordered": true,
               "encryptionInformation": {
-                "type": {
-                  "$numberInt": "1"
-                },
+                "type": 1,
                 "schema": {
                   "default.default": {
                     "fields": [
@@ -419,6 +443,16 @@
                             "$numberLong": "0"
                           }
                         }
+                      },
+                      {
+                        "keyId": {
+                          "$binary": {
+                            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+                            "subType": "04"
+                          }
+                        },
+                        "path": "encryptedUnindexed",
+                        "bsonType": "string"
                       }
                     ]
                   }
@@ -454,9 +488,7 @@
                 }
               ],
               "encryptionInformation": {
-                "type": {
-                  "$numberInt": "1"
-                },
+                "type": 1,
                 "schema": {
                   "default.default": {
                     "fields": [
@@ -475,6 +507,16 @@
                             "$numberLong": "0"
                           }
                         }
+                      },
+                      {
+                        "keyId": {
+                          "$binary": {
+                            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+                            "subType": "04"
+                          }
+                        },
+                        "path": "encryptedUnindexed",
+                        "bsonType": "string"
                       }
                     ]
                   }
@@ -509,33 +551,6 @@
               "filter": {
                 "_id": {
                   "$eq": 1
-                }
-              },
-              "encryptionInformation": {
-                "type": {
-                  "$numberInt": "1"
-                },
-                "schema": {
-                  "default.default": {
-                    "fields": [
-                      {
-                        "keyId": {
-                          "$binary": {
-                            "base64": "EjRWeBI0mHYSNBI0VniQEg==",
-                            "subType": "04"
-                          }
-                        },
-                        "path": "encryptedIndexed",
-                        "bsonType": "string",
-                        "queries": {
-                          "queryType": "equality",
-                          "contention": {
-                            "$numberLong": "0"
-                          }
-                        }
-                      }
-                    ]
-                  }
                 }
               }
             },
