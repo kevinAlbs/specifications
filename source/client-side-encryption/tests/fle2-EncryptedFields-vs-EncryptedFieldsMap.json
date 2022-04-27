@@ -16,7 +16,7 @@
             "subType": "04"
           }
         },
-        "path": "encryptedUnindexed",
+        "path": "encryptedIndexed",
         "bsonType": "string",
         "queries": {
           "queryType": "equality",
@@ -24,6 +24,16 @@
             "$numberLong": "0"
           }
         }
+      },
+      {
+        "keyId": {
+          "$binary": {
+            "base64": "q83vqxI0mHYSNBI0VniQEg==",
+            "subType": "04"
+          }
+        },
+        "path": "encryptedUnindexed",
+        "bsonType": "string"
       }
     ]
   },
