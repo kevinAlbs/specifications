@@ -1052,6 +1052,7 @@ ClientEncryption
       // 2. An Aggregate Expression of this form:
       //   {$and: [{$gt: [<fieldpath>, <value1>]}, {$lt: [<fieldpath>, <value2>]}]
       // $gt may also be $gte. $lt may also be $lte.
+      // NOTE: The Range algorithm is experimental only. It is not intended for public use.
       // Returns an encrypted value (BSON binary of subtype 6). The underlying implementation MAY return an error for prohibited BSON values.
       encrypt(value: BsonValue, opts: EncryptOpts): Binary;
 
@@ -1243,12 +1244,13 @@ EncryptOpts
       algorithm: String,
       contentionFactor: Optional<Int64>,
       queryType: Optional<String>,
-      rangeOpts: Optional<RangeOpts>
+      rangeOpts: Optional<RangeOpts> // NOTE: The Range algorithm is experimental only. It is not intended for public use.
    }
 
    // RangeOpts specifies index options for a Queryable Encryption field supporting "range" queries.
    // min, max, sparsity, and range must match the values set in the encryptedFields of the destination collection.
    // For double and decimal128, min/max/precision must all be set, or all be unset.
+   // NOTE: The Range algorithm is experimental only. It is not intended for public use.
    class RangeOpts {
       // min is required if precision is set.
       min: Optional<BSONValue>,
@@ -1284,6 +1286,8 @@ The result of explicit encryption with the "Indexed" or "Range" algorithm must b
    To insert or query with an "Indexed" or "Range" encrypted payload, use a ``MongoClient`` configured with ``AutoEncryptionOpts``.
    ``AutoEncryptionOpts.bypassQueryAnalysis`` may be true. ``AutoEncryptionOpts.bypassAutoEncryption`` must be false.
 
+NOTE: The Range algorithm is experimental only. It is not intended for public use.
+
 contentionFactor
 ^^^^^^^^^^^^^^^^
 contentionFactor only applies when algorithm is "Indexed".
@@ -1298,10 +1302,14 @@ One of the strings:
 queryType only applies when algorithm is "Indexed" or "Range".
 It is an error to set queryType when algorithm is not "Indexed" or "Range".
 
+NOTE: The Range algorithm is experimental only. It is not intended for public use.
+
 rangeOpts
 ^^^^^^^^^
 rangeOpts only applies when queryType is "range".
 It is an error to set rangeOpts when queryType is not "range".
+
+NOTE: The Range algorithm is experimental only. It is not intended for public use.
 
 
 User facing API: When Auto Encryption Fails
@@ -2631,7 +2639,7 @@ explicit session parameter as described in the
 Changelog
 =========
 
-:2022-11-23: Add ``Range``.
+:2022-11-23: Add ``Range``. NOTE: The Range algorithm is experimental only. It is not intended for public use.
 :2022-11-10: Defined a ``CreateEncryptedCollection`` helper for creating new
              encryption keys automatically for the queryable encrypted fields in
              a new collection.
