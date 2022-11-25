@@ -1274,7 +1274,7 @@ Identifies a key vault collection document by 'keyAltName'.
 
 algorithm
 ^^^^^^^^^
-One of the strings:
+One of the case-insensitive strings:
 - "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
 - "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
 - "Indexed"
@@ -1295,7 +1295,7 @@ It is an error to set contentionFactor when algorithm is not "Indexed" or "Range
 
 queryType
 ^^^^^^^^^
-One of the strings:
+One of the case-insensitive strings:
 - "equality"
 - "range"
 
