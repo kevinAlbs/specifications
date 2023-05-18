@@ -1,0 +1,82 @@
+# Requires libmongocrypt 1.9.0.
+runOn:
+  # SERVER-74798 enables the feature flag for cleanupStructuredEncryptionData. It is included in server 7.1.0.
+  - minServerVersion: "7.1.0"
+    # FLE 2 Encrypted collections are not supported on standalone.
+    topology: [ "replicaset", "sharded", "load-balanced" ]
+database_name: &database_name "default"
+collection_name: &collection_name "default"
+data: []
+encrypted_fields: &encrypted_fields {{ yamlfile("encryptedFields.json") }}
+key_vault_data: [ {{ yamlfile("keys/key1-document.json") }}, {{ yamlfile("keys/key2-document.json") }} ]
+tests:
+  - description: "Cleanup works"
+    clientOptions:
+      autoEncryptOpts:
+        kmsProviders:
+          local: {{ local_provider() }}
+    operations:
+      - name: runCommand
+        object: database
+        command_name: cleanupStructuredEncryptionData
+        arguments:
+          command:
+            cleanupStructuredEncryptionData: *collection_name
+    expectations:
+      - command_started_event:
+          command:
+            listCollections: 1
+            filter:
+              name: *collection_name
+          command_name: listCollections
+      - command_started_event:
+          command:
+            find: datakeys
+            filter: {
+                  "$or": [
+                      {
+                          "_id": {
+                              "$in": [
+                                {{ yamlfile("keys/key1-id.json") }},
+                                {{ yamlfile("keys/key2-id.json") }}
+                              ]
+                          }
+                      },
+                      {
+                          "keyAltNames": {
+                              "$in": []
+                          }
+                      }
+                  ]
+              }
+            $db: keyvault
+            readConcern: { level: "majority" }
+          command_name: find
+      - command_started_event:
+          command:
+            cleanupStructuredEncryptionData: *collection_name
+            cleanupTokens: {
+              "encryptedIndexed": {
+                "$binary": {
+                  "base64": "noN+05JsuO1oDg59yypIGj45i+eFH6HOTXOPpeZ//Mk=",
+                  "subType": "00"
+                }
+              },
+             "encryptedUnindexed": {
+                "$binary": {
+                  "base64": "SWO8WEoZ2r2Kx/muQKb7+COizy85nIIUFiHh4K9kcvA=",
+                  "subType": "00"
+                }
+              }
+            }
+          command_name: cleanupStructuredEncryptionData
+  - description: "Compact errors on an unencrypted client"
+    operations:
+      - name: runCommand
+        object: database
+        command_name: cleanupStructuredEncryptionData
+        arguments:
+          command:
+            cleanupStructuredEncryptionData: *collection_name
+        result:
+          errorContains: "'cleanupStructuredEncryptionData.cleanupTokens' is missing"
