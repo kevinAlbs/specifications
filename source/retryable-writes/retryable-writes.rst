@@ -510,7 +510,7 @@ The above rules are implemented in the following pseudo-code:
       }
 
       /* CSOT is enabled and the operation has timed out. */
-      if (timeoutMS != null && isExpired(timeoutMS) {
+      if (timeoutMS != null && isExpired(timeoutMS)) {
         throw previousError;
       }
     }
