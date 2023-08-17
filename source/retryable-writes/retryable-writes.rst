@@ -515,7 +515,9 @@ The above rules are implemented in the following pseudo-code:
         throw previousError;
       }
 
-      /* CSOT is enabled and the operation has timed out. */
+      /* CSOT is enabled and the operation has timed out.
+       * This check is done after `selectServer`. `selectServer` may have taken additional time.
+       */
       if (timeoutMS != null && isExpired(timeoutMS)) {
         throw previousError;
       }
