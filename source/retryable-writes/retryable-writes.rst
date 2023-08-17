@@ -452,6 +452,7 @@ The above rules are implemented in the following pseudo-code:
     retryableCommand = addTransactionIdToCommand(command, session);
 
     Exception previousError = null;
+    retried = false;
     while true {
       try {
         return executeCommand(server, retryableCommand);
@@ -492,6 +493,11 @@ The above rules are implemented in the following pseudo-code:
         }
       }
 
+      /* CSOT is disabled, and a retry has already occurred. */
+      if (timeoutMS == null && retried) {
+        throw previousError;
+      }
+
       /* If we cannot select a writable server, do not proceed with retrying and
        * throw the previous error. The caller can then infer that an attempt was
        * made and failed. */
@@ -513,6 +519,9 @@ The above rules are implemented in the following pseudo-code:
       if (timeoutMS != null && isExpired(timeoutMS)) {
         throw previousError;
       }
+
+      /* Do retry. */
+      retried = true;
     }
   }
 
