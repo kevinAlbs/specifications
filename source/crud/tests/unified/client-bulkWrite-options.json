@@ -28,6 +28,17 @@
         "database": "database0",
         "collectionName": "coll0"
       }
+    },
+    {
+      "client": {
+        "id": "client_with_w1",
+        "uriOptions": {
+          "w": 1
+        },
+        "observeEvents": [
+          "commandStartedEvent"
+        ]
+      }
     }
   ],
   "initialData": [
@@ -426,6 +437,193 @@
       "expectEvents": [
         {
           "client": "client0",
+          "events": [
+            {
+              "commandStartedEvent": {
+                "commandName": "bulkWrite",
+                "databaseName": "admin",
+                "command": {
+                  "bulkWrite": 1,
+                  "errorsOnly": false,
+                  "ordered": true,
+                  "ops": [
+                    {
+                      "insert": 0,
+                      "document": {
+                        "_id": 3,
+                        "x": 33
+                      }
+                    }
+                  ],
+                  "nsInfo": [
+                    {
+                      "ns": "crud-tests.coll0"
+                    }
+                  ],
+                  "writeConcern": {
+                    "w": "majority"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "collectionName": "coll0",
+          "databaseName": "crud-tests",
+          "documents": [
+            {
+              "_id": 1,
+              "x": 11
+            },
+            {
+              "_id": 2,
+              "x": 22
+            },
+            {
+              "_id": 3,
+              "x": 33
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "client bulkWrite uses client writeConcern",
+      "operations": [
+        {
+          "object": "client_with_w1",
+          "name": "clientBulkWrite",
+          "arguments": {
+            "models": [
+              {
+                "insertOne": {
+                  "namespace": "crud-tests.coll0",
+                  "document": {
+                    "_id": 3,
+                    "x": 33
+                  }
+                }
+              }
+            ],
+            "verboseResults": true
+          },
+          "expectResult": {
+            "insertedCount": 1,
+            "upsertedCount": 0,
+            "matchedCount": 0,
+            "modifiedCount": 0,
+            "deletedCount": 0,
+            "insertResults": {
+              "0": {
+                "insertedId": 3
+              }
+            },
+            "updateResults": {},
+            "deleteResults": {}
+          }
+        }
+      ],
+      "expectEvents": [
+        {
+          "client": "client_with_w1",
+          "events": [
+            {
+              "commandStartedEvent": {
+                "commandName": "bulkWrite",
+                "databaseName": "admin",
+                "command": {
+                  "bulkWrite": 1,
+                  "errorsOnly": false,
+                  "ordered": true,
+                  "ops": [
+                    {
+                      "insert": 0,
+                      "document": {
+                        "_id": 3,
+                        "x": 33
+                      }
+                    }
+                  ],
+                  "nsInfo": [
+                    {
+                      "ns": "crud-tests.coll0"
+                    }
+                  ],
+                  "writeConcern": {
+                    "w": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "collectionName": "coll0",
+          "databaseName": "crud-tests",
+          "documents": [
+            {
+              "_id": 1,
+              "x": 11
+            },
+            {
+              "_id": 2,
+              "x": 22
+            },
+            {
+              "_id": 3,
+              "x": 33
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "client bulkWrite writeConcern option overrides client writeConcern",
+      "operations": [
+        {
+          "object": "client_with_w1",
+          "name": "clientBulkWrite",
+          "arguments": {
+            "models": [
+              {
+                "insertOne": {
+                  "namespace": "crud-tests.coll0",
+                  "document": {
+                    "_id": 3,
+                    "x": 33
+                  }
+                }
+              }
+            ],
+            "verboseResults": true,
+            "writeConcern": {
+              "w": "majority"
+            }
+          },
+          "expectResult": {
+            "insertedCount": 1,
+            "upsertedCount": 0,
+            "matchedCount": 0,
+            "modifiedCount": 0,
+            "deletedCount": 0,
+            "insertResults": {
+              "0": {
+                "insertedId": 3
+              }
+            },
+            "updateResults": {},
+            "deleteResults": {}
+          }
+        }
+      ],
+      "expectEvents": [
+        {
+          "client": "client_with_w1",
           "events": [
             {
               "commandStartedEvent": {
