@@ -223,7 +223,13 @@
                     {
                       "ns": "retryable-writes-tests.coll0"
                     }
-                  ]
+                  ],
+                  "lsid": {
+                    "$$exists": true
+                  },
+                  "txnNumber": {
+                    "$$exists": true
+                  }
                 }
               }
             },
@@ -277,7 +283,13 @@
                     {
                       "ns": "retryable-writes-tests.coll0"
                     }
-                  ]
+                  ],
+                  "lsid": {
+                    "$$exists": true
+                  },
+                  "txnNumber": {
+                    "$$exists": true
+                  }
                 }
               }
             }
@@ -577,7 +589,13 @@
                     {
                       "ns": "retryable-writes-tests.coll0"
                     }
-                  ]
+                  ],
+                  "lsid": {
+                    "$$exists": true
+                  },
+                  "txnNumber": {
+                    "$$exists": true
+                  }
                 }
               }
             },
@@ -631,7 +649,13 @@
                     {
                       "ns": "retryable-writes-tests.coll0"
                     }
-                  ]
+                  ],
+                  "lsid": {
+                    "$$exists": true
+                  },
+                  "txnNumber": {
+                    "$$exists": true
+                  }
                 }
               }
             }

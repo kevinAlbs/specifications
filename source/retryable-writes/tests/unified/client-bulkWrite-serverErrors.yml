@@ -115,6 +115,9 @@ tests:
                     multi: false
                 nsInfo:
                   - ns: *namespace
+                # An implicit session is included with the transaction number:
+                lsid: { "$$exists": true }
+                txnNumber: { "$$exists": true }
           - commandStartedEvent:
               commandName: bulkWrite
               databaseName: admin
@@ -139,6 +142,9 @@ tests:
                     multi: false
                 nsInfo:
                   - ns: *namespace
+                # An implicit session is included with the transaction number:
+                lsid: { "$$exists": true }
+                txnNumber: { "$$exists": true }
     outcome:
       - collectionName: *collection0Name
         databaseName: *database0Name
@@ -280,6 +286,9 @@ tests:
                     multi: false
                 nsInfo:
                   - ns: *namespace
+                # An implicit session is included with the transaction number:
+                lsid: { "$$exists": true }
+                txnNumber: { "$$exists": true }
           - commandStartedEvent:
               commandName: bulkWrite
               databaseName: admin
@@ -304,6 +313,9 @@ tests:
                     multi: false
                 nsInfo:
                   - ns: *namespace
+                # An implicit session is included with the transaction number:
+                lsid: { "$$exists": true }
+                txnNumber: { "$$exists": true }
   - description: "client bulkWrite with multi: true operations fails after retryable writeConcernError"
     operations:
       - object: testRunner
