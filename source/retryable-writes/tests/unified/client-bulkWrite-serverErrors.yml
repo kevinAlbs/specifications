@@ -335,7 +335,7 @@ tests:
         expectError:
           writeConcernErrors:
             - code: 91
-              errmsg: "Replication is being shut down"
+              message: "Replication is being shut down"
     expectEvents:
       - client: *client0
         events:

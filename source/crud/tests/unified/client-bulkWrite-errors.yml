@@ -32,6 +32,9 @@ _yamlAnchors:
   writeConcernError: &writeConcernError
     code: 91
     errmsg: "Replication is being shut down"
+  writeConcernErrorExpectation: &writeConcernErrorExpectation
+    code: 91
+    message: "Replication is being shut down"
   undefinedVarCode: &undefinedVarCode 17276 # Use of an undefined variable
 
 tests:
@@ -225,4 +228,4 @@ tests:
                 insertedId: 10
             updateResults: {}
             deleteResults: {}
-          writeConcernErrors: [ *writeConcernError ]
+          writeConcernErrors: [ *writeConcernErrorExpectation ]
