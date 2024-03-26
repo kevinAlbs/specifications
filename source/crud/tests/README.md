@@ -221,6 +221,17 @@ InsertOne: {
 }
 ```
 
+#### Test maximum in one batch
+
+Construct a list of write models (referred to as `models`) with `writeModel` repeated `maxWriteBatchSize` times.
+Execute `bulkWrite` on `client` with `models`. Assert that the bulk write succeeds and returns a `BulkWriteResult`
+with an `insertedCount` value of `maxWriteBatchSize`.
+
+Assert that one CommandStartedEvent (referred to as `firstEvent`) was observed for the `bulkWrite` command.
+Assert that the length of `firstEvent.command.ops` is `maxWriteBatchSize`.
+
+#### Test two batches
+
 Construct a list of write models (referred to as `models`) with `writeModel` repeated `maxWriteBatchSize + 1` times.
 Execute `bulkWrite` on `client` with `models`. Assert that the bulk write succeeds and returns a `BulkWriteResult`
 with an `insertedCount` value of `maxWriteBatchSize + 1`.
@@ -256,6 +267,21 @@ InsertOne: {
   "document": document
 }
 ```
+
+#### Test maximum in one batch
+
+Use the following calculation to determine the number of inserts that should be provided to `MongoClient.bulkWrite`:
+`maxMessageSizeBytes / maxBsonObjectSize` (referred to as `numModels`). This number is intended to be close
+to the maximum before splitting.
+
+Construct as list of write models (referred to as `models`) with `model` repeated `numModels` times. Then execute
+`bulkWrite` on `client` with `models`. Assert that the bulk write succeeds and returns a `BulkWriteResult` with
+an `insertedCount` value of `numModels`.
+
+Assert that one CommandStartedEvents (referred to as `firstEvent`) was observed. Assert that the length of
+`firstEvent.command.ops` is equal to `numModels`.
+
+#### Test two batches
 
 Use the following calculation to determine the number of inserts that should be provided to `MongoClient.bulkWrite`:
 `maxMessageSizeBytes / maxBsonObjectSize + 1` (referred to as `numModels`). This number ensures that the inserts
