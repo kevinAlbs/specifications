@@ -229,3 +229,24 @@ tests:
             updateResults: {}
             deleteResults: {}
           writeConcernErrors: [ *writeConcernErrorExpectation ]
+  - description: "an empty bulkWrite is a client-side error"
+    operations:
+      - name: failPoint
+        object: testRunner
+        arguments:
+          client: *client0
+          failPoint:
+            configureFailPoint: failCommand
+            mode:
+              times: 1
+            data:
+              failCommands:
+                - bulkWrite
+              writeConcernError: *writeConcernError
+      - object: *client0
+        name: clientBulkWrite
+        arguments:
+          models: []
+          verboseResults: true
+        expectError:
+          isClientError: true
