@@ -389,3 +389,42 @@ Assert that two CommandStartedEvents were observed.
 
 Expect a `BulkWriteException` with a map of `writeConcern` errors containing a total of two entries (for duplicate keys).
 
+
+### 7. `MongoClient.bulkWrite` collects `writeConcernErrors` across batches
+
+Construct a `MongoClient` (referred to as `client`) with
+[command monitoring](../../command-logging-and-monitoring/command-logging-and-monitoring.rst) enabled to observe
+CommandStartedEvents.
+
+Perform a `hello` command using `client` and record the following values from the response: `maxWriteBatchSize`.
+
+Construct a list of `maxWriteBatchSize + 1` write models (referred to as `models`) of this form:
+
+```json
+InsertOne: {
+  "namespace": "db.coll",
+  "document": { "foo": "bar" }
+}
+```
+
+Configure the following failpoint:
+```json
+{
+    "configureFailPoint": "failCommand",
+    "mode": { "times": 2 },
+    "data": {
+      "failCommands" : ["bulkWrite"],
+      "writeConcernError": {
+        "code": 11601,
+        "errmsg": "operation was interrupted"
+      }
+    }
+}
+```
+
+Call `MongoClient.bulkWrite` with `models`.
+
+Assert that two CommandStartedEvents were observed.
+
+Expect a `BulkWriteException` with a list of `writeConcernErrors` containing two entries.
+
