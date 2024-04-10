@@ -695,6 +695,9 @@ observed, drivers MUST embed the top-level error within a `BulkWriteException` a
 to retain this information. Otherwise, drivers MAY throw an exception containing only the top-level
 error.
 
+When a top-level error is caused by a command error (`{ "ok": 0 }`) drivers MUST provide access
+to the raw server reply.
+
 Encountering a top-level error MUST halt execution of a bulk write for both ordered and unordered
 bulk writes. This means that drivers MUST NOT attempt to retrieve more responses from the cursor or
 execute any further `bulkWrite` batches and MUST immediately throw an exception.
@@ -734,6 +737,17 @@ specify `ops` and `nsInfo` as document sequences (`OP_MSG` payload type 1) for e
 writes.
 
 ## Q&A
+
+### Why is providing access to the raw server response required?
+
+This is intended to future-proof drivers if information is added to any error responses in the future. This was originally motivated in [DRIVERS-2385](https://jira.mongodb.org/browse/DRIVERS-2385).
+
+Access to the raw server response is only required when a top-level error occurs due to a command error (`ok: 0`).
+
+Future server versions can extend `writeErrors[].errInfo` to extend `WriteError.details` without requiring driver changes.
+
+Future server versions can extend `writeConcernError.errInfo` to extend `WriteConcernError.details` without requiring driver changes.
+
 
 ### Why are we adding a new bulk write API rather than updating the `MongoCollection.bulkWrite` implementation?
 
