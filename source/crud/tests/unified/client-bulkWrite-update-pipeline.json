@@ -1,5 +1,5 @@
 {
-  "description": "client bulkWrite update options",
+  "description": "client bulkWrite update pipeline",
   "schemaVersion": "1.1",
   "runOnRequirements": [
     {

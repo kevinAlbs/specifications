@@ -55,14 +55,8 @@
   ],
   "_yamlAnchors": {
     "namespace": "crud-tests.coll0",
-    "writeConcernError": {
-      "code": 91,
-      "errmsg": "Replication is being shut down"
-    },
-    "writeConcernErrorExpectation": {
-      "code": 91,
-      "message": "Replication is being shut down"
-    },
+    "writeConcernErrorCode": 91,
+    "writeConcernErrorMessage": "Replication is being shut down",
     "undefinedVarCode": 17276
   },
   "tests": [
@@ -440,33 +434,11 @@
       ]
     },
     {
-      "description": "an empty bulkWrite is a client-side error",
+      "description": "an empty list of write models is a client-side error",
       "operations": [
         {
-          "name": "failPoint",
-          "object": "testRunner",
-          "arguments": {
-            "client": "client0",
-            "failPoint": {
-              "configureFailPoint": "failCommand",
-              "mode": {
-                "times": 1
-              },
-              "data": {
-                "failCommands": [
-                  "bulkWrite"
-                ],
-                "writeConcernError": {
-                  "code": 91,
-                  "errmsg": "Replication is being shut down"
-                }
-              }
-            }
-          }
-        },
-        {
-          "object": "client0",
           "name": "clientBulkWrite",
+          "object": "client0",
           "arguments": {
             "models": [],
             "verboseResults": true

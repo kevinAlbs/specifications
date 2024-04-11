@@ -244,6 +244,19 @@ class NamespaceWriteModelPair {
 
 Drivers MUST throw an exception if the list provided for `models` is empty.
 
+#### Update vs. replace document validation
+
+Update documents provided in `UpdateOne` and `UpdateMany` write models are required only to contain
+atomic modifiers (i.e. keys that start with "$"). Drivers MUST throw an error if an update document
+is empty or if the document's first key does not start with "$". Drivers MUST rely on the server to
+return an error if any other entries in the update document are not atomic modifiers. Drivers are
+not required to perform validation on update pipelines.
+
+Replacement documents provided in `ReplaceOne` write models are required not to contain atomic
+modifiers. Drivers MUST throw an error if a replacement document is nonempty and its first key
+starts with "$". Drivers MUST rely on the server to return an error if any other entries in the
+replacement document are atomic modifiers.
+
 ### Options
 
 ```typescript
@@ -278,6 +291,14 @@ class BulkWriteOptions {
      * The write concern to use for this bulk write.
      */
     writeConcern: Optional<WriteConcern>;
+
+    /**
+     * Enables users to specify an arbitrary comment to help trace the operation through
+     * the database profiler, currentOp and logs.
+     *
+     * This option is only sent if the caller explicitly provides a value.
+     */
+    comment: Optional<BSON value>;
 
     /**
      * Whether detailed results for each successful operation should be included in the returned
@@ -652,7 +673,7 @@ The documents in the results cursor have the following format:
     "errInfo": Optional<Document>,
     "n": <Int32>,
     "nModified": Optional<Int32>,
-    "upsertedId": Optional<BSON value>
+    "upserted": Optional<Document with "_id" field>
 }
 ```
 
@@ -666,7 +687,7 @@ populated with the following values based on the type of write:
 | -------------- | ------ | ------ | ------ |
 | `n` | The number of documents that were inserted. | The number of documents that matched the filter. | The number of documents that were deleted. |
 | `nModified` | Not present. | The number of documents that were modified. | Not present. |
-| `upsertedId` | Not present. | The `_id` value for the upserted document. Only present if an upsert took place. | Not present. |
+| `upserted` | Not present. | A document containing the `_id` value for the upserted document. Only present if an upsert took place. | Not present. |
 
 Note that the responses do not contain information about the type of operation that was performed.
 Drivers may need to maintain the user's list of write models to infer which type of result should
@@ -700,7 +721,9 @@ to the raw server reply.
 
 Encountering a top-level error MUST halt execution of a bulk write for both ordered and unordered
 bulk writes. This means that drivers MUST NOT attempt to retrieve more responses from the cursor or
-execute any further `bulkWrite` batches and MUST immediately throw an exception.
+execute any further `bulkWrite` batches and MUST immediately throw an exception. If the results
+cursor has not been exhausted on the server when a top-level error occurs, drivers MUST send the
+`killCursors` command to attempt to close it.
 
 ### Write Concern Errors
 
@@ -785,8 +808,8 @@ defaults, so `verboseResults` defaults to `false` to improve performance in the 
 
 [DRIVERS-450](https://jira.mongodb.org/browse/DRIVERS-450) introduced a requirement that drivers
 only send a value for `bypassDocumentValidation` on write commands if it was specified as true. The
-original motivation for this change is not documented. Conversely, this specification requires that
-drivers send `bypassDocumentValidation` in the `bulkWrite` command if it is set by the user in
+original motivation for this change is not documented. This specification requires that drivers
+send `bypassDocumentValidation` in the `bulkWrite` command if it is set by the user in
 `BulkWriteOptions`, regardless of its value.
 
 Explicitly defining `bypassDocumentValidation: false` aligns with the server's default to perform

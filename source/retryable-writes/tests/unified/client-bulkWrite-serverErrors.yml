@@ -12,6 +12,12 @@ createEntities:
       id: &client0 client0
       observeEvents: [ commandStartedEvent ]
       useMultipleMongoses: false
+  - client:
+      id: &clientRetryWritesFalse clientRetryWritesFalse
+      uriOptions:
+        retryWrites: false
+      observeEvents: [ commandStartedEvent ]
+      useMultipleMongoses: false
   - database:
       id: &database0 database0
       client: *client0
@@ -85,11 +91,11 @@ tests:
             1:
               matchedCount: 1
               modifiedCount: 1
-              upsertedId: { "$$exists": false }
+              upsertedId: { $$exists: false }
             2:
               matchedCount: 1
               modifiedCount: 1
-              upsertedId: { "$$exists": false }
+              upsertedId: { $$exists: false }
           deleteResults:
             3:
               deletedCount: 1
@@ -120,9 +126,8 @@ tests:
                     multi: false
                 nsInfo:
                   - ns: *namespace
-                # An implicit session is included with the transaction number:
-                lsid: { "$$exists": true }
-                txnNumber: { "$$exists": true }
+                lsid: { $$exists: true }
+                txnNumber: { $$exists: true }
           - commandStartedEvent:
               commandName: bulkWrite
               databaseName: admin
@@ -147,9 +152,8 @@ tests:
                     multi: false
                 nsInfo:
                   - ns: *namespace
-                # An implicit session is included with the transaction number:
-                lsid: { "$$exists": true }
-                txnNumber: { "$$exists": true }
+                lsid: { $$exists: true }
+                txnNumber: { $$exists: true }
     outcome:
       - collectionName: *collection0Name
         databaseName: *database0Name
@@ -256,11 +260,11 @@ tests:
             1:
               matchedCount: 1
               modifiedCount: 1
-              upsertedId: { "$$exists": false }
+              upsertedId: { $$exists: false }
             2:
               matchedCount: 1
               modifiedCount: 1
-              upsertedId: { "$$exists": false }
+              upsertedId: { $$exists: false }
           deleteResults:
             3:
               deletedCount: 1
@@ -291,9 +295,8 @@ tests:
                     multi: false
                 nsInfo:
                   - ns: *namespace
-                # An implicit session is included with the transaction number:
-                lsid: { "$$exists": true }
-                txnNumber: { "$$exists": true }
+                lsid: { $$exists: true }
+                txnNumber: { $$exists: true }
           - commandStartedEvent:
               commandName: bulkWrite
               databaseName: admin
@@ -318,9 +321,8 @@ tests:
                     multi: false
                 nsInfo:
                   - ns: *namespace
-                # An implicit session is included with the transaction number:
-                lsid: { "$$exists": true }
-                txnNumber: { "$$exists": true }
+                lsid: { $$exists: true }
+                txnNumber: { $$exists: true }
   - description: "client bulkWrite with multi: true operations fails after retryable writeConcernError"
     operations:
       - object: testRunner
@@ -379,7 +381,7 @@ tests:
       - object: testRunner
         name: failPoint
         arguments:
-          client: *client_no_retry
+          client: *clientRetryWritesFalse
           failPoint:
             configureFailPoint: failCommand
             mode:
@@ -388,7 +390,7 @@ tests:
               failCommands: [ bulkWrite ]
               errorCode: 189 # PrimarySteppedDown
               errorLabels: [ RetryableWriteError ]
-      - object: *client_no_retry
+      - object: *clientRetryWritesFalse
         name: clientBulkWrite
         arguments:
           models:
@@ -399,7 +401,7 @@ tests:
           errorCode: 189
           errorLabelsContain: [ RetryableWriteError ]
     expectEvents:
-      - client: *client_no_retry
+      - client: *clientRetryWritesFalse
         events:
           - commandStartedEvent:
               commandName: bulkWrite

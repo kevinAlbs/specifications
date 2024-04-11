@@ -22,6 +22,18 @@
       }
     },
     {
+      "client": {
+        "id": "clientRetryWritesFalse",
+        "uriOptions": {
+          "retryWrites": false
+        },
+        "observeEvents": [
+          "commandStartedEvent"
+        ],
+        "useMultipleMongoses": false
+      }
+    },
+    {
       "database": {
         "id": "database0",
         "client": "client0",
@@ -792,7 +804,7 @@
           "object": "testRunner",
           "name": "failPoint",
           "arguments": {
-            "client": "client_no_retry",
+            "client": "clientRetryWritesFalse",
             "failPoint": {
               "configureFailPoint": "failCommand",
               "mode": {
@@ -811,7 +823,7 @@
           }
         },
         {
-          "object": "client_no_retry",
+          "object": "clientRetryWritesFalse",
           "name": "clientBulkWrite",
           "arguments": {
             "models": [
@@ -836,7 +848,7 @@
       ],
       "expectEvents": [
         {
-          "client": "client_no_retry",
+          "client": "clientRetryWritesFalse",
           "events": [
             {
               "commandStartedEvent": {
