@@ -1,0 +1,163 @@
+{
+  "description": "bulkWrite",
+  "schemaVersion": "1.0",
+  "createEntities": [
+    {
+      "client": {
+        "id": "client",
+        "observeEvents": [
+          "commandStartedEvent",
+          "commandSucceededEvent",
+          "commandFailedEvent"
+        ]
+      }
+    },
+    {
+      "database": {
+        "id": "database",
+        "client": "client",
+        "databaseName": "command-monitoring-tests"
+      }
+    },
+    {
+      "collection": {
+        "id": "collection",
+        "database": "database",
+        "collectionName": "test"
+      }
+    }
+  ],
+  "initialData": [
+    {
+      "collectionName": "test",
+      "databaseName": "command-monitoring-tests",
+      "documents": [
+        {
+          "_id": 1,
+          "x": 11
+        },
+        {
+          "_id": 2,
+          "x": 22
+        },
+        {
+          "_id": 3,
+          "x": 33
+        }
+      ]
+    }
+  ],
+  "_yamlAnchors": {
+    "namespace": "command-monitoring-tests.test"
+  },
+  "tests": [
+    {
+      "description": "A successful mixed client bulkWrite",
+      "operations": [
+        {
+          "object": "client",
+          "name": "clientBulkWrite",
+          "arguments": {
+            "models": [
+              {
+                "insertOne": {
+                  "namespace": "command-monitoring-tests.test",
+                  "document": {
+                    "_id": 4,
+                    "x": 44
+                  }
+                }
+              },
+              {
+                "updateOne": {
+                  "namespace": "command-monitoring-tests.test",
+                  "filter": {
+                    "_id": 3
+                  },
+                  "update": {
+                    "$set": {
+                      "x": 333
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "expectResult": {
+            "insertedCount": 1,
+            "upsertedCount": 0,
+            "matchedCount": 1,
+            "modifiedCount": 1,
+            "deletedCount": 0,
+            "insertResults": {
+              "$$unsetOrMatches": {}
+            },
+            "updateResults": {
+              "$$unsetOrMatches": {}
+            },
+            "deleteResults": {
+              "$$unsetOrMatches": {}
+            }
+          }
+        }
+      ],
+      "expectEvents": [
+        {
+          "client": "client",
+          "events": [
+            {
+              "commandStartedEvent": {
+                "commandName": "bulkWrite",
+                "databaseName": "admin",
+                "command": {
+                  "bulkWrite": 1,
+                  "errorsOnly": true,
+                  "ordered": true,
+                  "ops": [
+                    {
+                      "insert": 0,
+                      "document": {
+                        "_id": 4,
+                        "x": 44
+                      }
+                    },
+                    {
+                      "update": 0,
+                      "filter": {
+                        "_id": 3
+                      },
+                      "updateMods": {
+                        "$set": {
+                          "x": 333
+                        }
+                      },
+                      "multi": false
+                    }
+                  ],
+                  "nsInfo": [
+                    {
+                      "ns": "command-monitoring-tests.test"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "commandSucceededEvent": {
+                "commandName": "bulkWrite",
+                "reply": {
+                  "ok": 1,
+                  "nInserted": 1,
+                  "nMatched": 1,
+                  "nModified": 1,
+                  "nUpserted": 0,
+                  "nDeleted": 0
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
