@@ -417,8 +417,21 @@ InsertOne {
 }
 ```
 
-Construct a list of write models (referred to as `models`) with `model` repeated 2 times. Execute `bulkWrite` on
-`client` with `models` and `ordered` set to false. Assert that the bulk write fails and returns a `BulkWriteError`
+Construct a list of write models (referred to as `models`) with `model` repeated 2 times.
+
+# Without a transaction
+
+Execute `bulkWrite` on `client` with `models` and `ordered` set to false. Assert that the bulk write fails and returns a
+`BulkWriteError` (referred to as `error`).
+
+Assert that the length of `error.writeErrors` is 2.
+
+Assert that a CommandStartedEvent was observed for the `getMore` command.
+
+# In a transaction
+
+Start a session, named `session`, on `client`. Start a transaction on `session`. Execute `bulkWrite` on `client` with
+the `session`, `models` and `ordered` set to false. Assert that the bulk write fails and returns a `BulkWriteError`
 (referred to as `error`).
 
 Assert that the length of `error.writeErrors` is 2.
