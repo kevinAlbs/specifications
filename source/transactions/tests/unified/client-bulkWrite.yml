@@ -161,3 +161,20 @@ tests:
           - { _id: 3, x: 35 }
           - { _id: 4, x: 44 }
           - { _id: 8, x: 88 }
+  - description: "bulkWrite with writeConcern results transaction error"
+    operations:
+      - object: *session0
+        name: startTransaction
+      - object: *client0
+        name: clientBulkWrite
+        arguments:
+          session: *session0
+          writeConcern:
+            w: 1
+          models:
+            - insertOne:
+                namespace: *namespace
+                document: { _id: 8, x: 88 }
+        expectError:
+          isClientError: true
+          errorContains: "Cannot set write concern after starting a transaction."
