@@ -541,3 +541,35 @@ Construct as list of write models (referred to as `models`) with the one `model`
 Call `MongoClient.bulkWrite` with `models` and `BulkWriteOptions.writeConcern` set to an unacknowledged write concern.
 
 Expect a client-side error due the size.
+
+### 11. `MongoClient.bulkWrite` returns error if cannot fit any operation
+
+This test must only be run on 8.0+ servers. This test may need to be skipped in drivers tha cannot construct
+arbitrarily large BSON documents.
+
+Construct a `MongoClient` (referred to as `client`).
+
+Perform a `hello` command using `client` and record the following values from the response: `maxMessageSizeBytes`.
+
+Then, construct the following document (referred to as `document`):
+
+```json
+{
+  "a": "b".repeat(maxMessageSizeBytes)
+}
+```
+
+Construct the following write model (referred to as `model`):
+
+```json
+InsertOne: {
+  "namespace": "db.coll",
+  "document": document
+}
+```
+
+Construct as list of write models (referred to as `models`) with the one `model`.
+
+Call `MongoClient.bulkWrite` with `models`.
+
+Expect a client-side error due to not being able to fit one document.
