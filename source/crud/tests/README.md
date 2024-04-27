@@ -577,6 +577,9 @@ numModels = opsBytes / maxBsonObjectSize
 remainderBytes = opsBytes % maxBsonObjectSize
 ```
 
+Repeat the following setup for each test case:
+
+## Set-up
 Construct the following write model (referred to as `firstModel`):
 
 ```json
@@ -597,6 +600,32 @@ InsertOne {
   "document": { "a": "b".repeat(remainderBytes - 57) }
 }
 ```
+
+## Case 1: Does not split
+
+Create the following write model (referred to as `secondModel`):
+
+```json
+InsertOne {
+  namespace: "db.coll",
+  document: { "a": "b" }
+}
+```
+
+Append `secondModel` to `models`.
+
+Execute `bulkWrite` on `client` with `models`. Assert that the bulk write succeeds and returns a `BulkWriteResult`
+(referred to as `result`).
+
+Assert that `result.insertedCount` is equal to `numModels + 1`.
+
+Assert that one CommandStartedEvent is observed for the `bulkWrite` command (referred to as `firstEvent`).
+
+Assert that the length of `firstEvent.command.ops` is equal to `numModels + 1`. Assert that the length of
+`firstEvent.command.nsInfo` is equal to 1. Assert that the namespace contained in `firstEvent.command.nsInfo` is
+"db.coll".
+
+## Case 2: Splits with new namespace
 
 Construct the following namespace (referred to as `namespace`):
 
