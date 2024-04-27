@@ -714,12 +714,28 @@ arbitrarily large documents.
 Construct a `MongoClient` (referred to as `client`). Perform a `hello` command using `client` and record the
 `maxMessageSizeBytes` value contained in the response.
 
+#### Case 1: `document` too large
+
 Construct the following write model (referred to as `model`):
 
 ```json
 InsertOne {
   "namespace": "db.coll",
   "document": { "a": "b".repeat(maxMessageSizeBytes) }
+}
+```
+
+Execute `bulkWrite` on `client` with `model`. Assert that an error (referred to as `error`) is returned.
+Assert that `error` is a client error.
+
+#### Case 2: `namespace` too large
+
+Construct the following write model (referred to as `model`):
+
+```json
+InsertOne {
+  "namespace": "db." + "b".repeat(maxMessageSizeBytes),
+  "document": { "a": "b" }
 }
 ```
 
