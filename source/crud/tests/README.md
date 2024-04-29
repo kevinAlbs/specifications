@@ -770,3 +770,35 @@ InsertOne {
 
 Execute `bulkWrite` on `client` with `model`. Assert that an error (referred to as `error`) is returned.
 Assert that `error` is a client error.
+
+### 13. `MongoClient.bulkWrite` errors if configured with automatic encryption.
+
+This test is expected to be removed when DRIVERS-2888 is resolved.
+
+This test must only be run on 8.0+ servers.
+
+Construct a `MongoClient` (referred to as `client`) configured with the following `AutoEncryptionOpts`:
+
+```json
+AutoEncryptionOpts {
+  "keyVaultNamespace": "db.coll",
+  "kmsProviders": {
+    "aws": {
+      "accessKeyId": "foo",
+      "secretAccessKey": "bar"
+    }
+  }
+}
+```
+
+Construct the following write model (referred to as `model`):
+
+```json
+InsertOne {
+  "namespace": "db.coll",
+  "document": { "a": "b" }
+}
+```
+
+Execute `bulkWrite` on `client` with `model`. Assert that an error (referred to as `error`) is returned.
+Assert that `error` is a client error containing the message: "bulkWrite does not currently support automatic encryption".
