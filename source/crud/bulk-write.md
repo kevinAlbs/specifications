@@ -592,6 +592,13 @@ of the following limits is exceeded:
 See [SERVER-10643](https://jira.mongodb.org/browse/SERVER-10643) for more details on these size
 limits.
 
+## Auto-Encryption
+
+If `MongoClient.bulkWrite` is called on a `MongoClient` configured with `AutoEncryptionOpts`, drivers MUST return an
+error with the message: "bulkWrite does not currently support automatic encryption".
+
+This is expected to be removed once DRIVERS-2888 is implemented.
+
 ## Command Batching
 
 Drivers MUST accept an arbitrary number of operations as input to the `MongoClient.bulkWrite`
