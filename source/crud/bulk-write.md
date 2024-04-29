@@ -492,7 +492,7 @@ The `bulkWrite` server command has the following format:
 ```
 
 Drivers MUST use document sequences ([`OP_MSG`](../message/OP_MSG.rst) payload type 1) for the
-`ops` and `nsInfo` fields. Drivers MUST NOT use document sequences when auto-encryption is enabled.
+`ops` and `nsInfo` fields.
 
 The `bulkWrite` command is executed on the "admin" database.
 
@@ -621,15 +621,6 @@ bulk write into multiple commands if the user provides more than `maxWriteBatchS
 the argument for `models`.
 
 ### Total Message Size
-
-#### Encrypted bulk writes
-
-When auto-encryption is enabled, drivers MUST NOT provide the `ops` and `nsInfo` fields as document
-sequences and MUST limit the size of each `bulkWrite` command according to the auto-encryption size
-limits defined in the
-[Client Side Encryption Specification](../client-side-encryption/client-side-encryption.rst).
-
-#### Unencrypted bulk writes
 
 When `ops` and `nsInfo` are provided as document sequences, drivers MUST ensure that the total size
 of the `OP_MSG` built for each `bulkWrite` command does not exceed `maxMessageSizeBytes`.
@@ -810,14 +801,6 @@ constructing very large documents to test batch splitting, which is not feasible
 test format at the time of writing this specification.
 
 ## Future Work
-
-### Support using document sequences in encrypted bulk writes
-
-Libmongocrypt is currently only capable of encrypting command documents, not wire protocol
-messages. This means that all command fields must be embedded within the command document. When
-[DRIVERS-2859](https://jira.mongodb.org/browse/DRIVERS-2859) is completed, drivers will be able to
-specify `ops` and `nsInfo` as document sequences (`OP_MSG` payload type 1) for encrypted bulk
-writes.
 
 ### Retry `bulkWrite` when `getMore` fails with a retryable error
 
