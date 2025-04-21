@@ -25,19 +25,21 @@ createEntities:
       id: &collection0 collection0
       database: *database0
       collectionName: &collection0Name coll0
+  - client:
+      id: &unencryptedClient unencryptedClient
   - database:
-      id: &database1 database1
-      client: *client0
-      databaseName: &database1Name keyvault
+      id: &unencryptedDatabase unencryptedDatabase
+      client: *unencryptedClient
+      databaseName: *database0Name
   - collection:
-      id: &collection1 collection1
-      database: *database0
-      collectionName: &collection1Name datakeys
+      id: &unencryptedCollection unencryptedCollection
+      client: *unencryptedClient
+      collectionName: *collection0Name
 
 
 initialData:
-  - databaseName: *database1Name
-    collectionName: *collection1Name
+  - databaseName: keyvault
+    collectionName: datakeys
     documents:
       - _id: &local_key_id { $binary: { base64: EjRWeBI0mHYSNBI0VniQEg==, subType: "04" } }
         keyAltNames: ["local_key"]
@@ -51,7 +53,26 @@ initialData:
     collectionName: *collection0Name
     documents: []
     createOptions:
-      encryptedFields: &encrypted_fields {'fields': [{'keyId': {'$binary': {'base64': 'EjRWeBI0mHYSNBI0VniQEg==', 'subType': '04'}}, 'path': 'encryptedInt', 'bsonType': 'int', 'queries': {'queryType': 'equality', 'contention': {'$numberLong': '0'}}}]}
+      encryptedFields: {
+          "fields": [
+              {
+                  "keyId": {
+                      "$binary": {
+                          "base64": "EjRWeBI0mHYSNBI0VniQEg==",
+                          "subType": "04"
+                      }
+                  },
+                  "path": "encryptedInt",
+                  "bsonType": "int",
+                  "queries": {
+                      "queryType": "equality",
+                      "contention": {
+                          "$numberLong": "0"
+                      }
+                  }
+              }
+          ]
+      }
 
 _yamlAnchors:
   namespace: &namespace "crud-tests.coll0"
@@ -87,13 +108,17 @@ tests:
         expectResult:
           - _id: 1
             encryptedInt: 44
-    outcome:
-      - collectionName: *collection0Name
-        databaseName: *database0Name
-        documents:
-          - { _id: 1, encryptedInt: { $$type: binData }, __safeContent__: { $$type: array} }
-          - { _id: 2, encryptedInt: { $$type: binData }, __safeContent__: { $$type: array}  }
-          - { _id: 3, encryptedInt: { $$type: binData }, __safeContent__: { $$type: array}  }
+      # Use a `find` on an unencrypted client to do in-exact mathching. `encryptedInt` is non-deterministic.
+      - object: *unencryptedCollection
+        name: find
+        arguments:
+          filter: {} # Match everything
+        expectResult:
+          - { _id: 1, encryptedInt: { $$type: binData }, __safeContent__: "TODO: add actual contents" }
+          - { _id: 2, encryptedInt: { $$type: binData }, __safeContent__: "TODO: add actual contents" }
+          - { _id: 3, encryptedInt: { $$type: binData }, __safeContent__: "TODO: add actual contents" }
+          # TODO: note in unified test format that test runner must drop esc and ecoc collections.
+
   - description: client bulkWrite QE with multiple replace fails
     operations:
       - object: *client0
