@@ -175,7 +175,7 @@ This test requires failCommand appName support which is only available in MongoD
 
 ## Connection Pool Backpressure
 
-This test will be used to ensure that connection establishment failures during the TLS handshake do not result in a pool
+This test will be used to ensure that connection establishment failures during the TCP handshake do not result in a pool
 clear event. We create a setup client to enable the ingress connection establishment rate limiter, and then induce a
 connection storm. After the storm, we verify that some of the connections failed to checkout, but that the pool was not
 cleared.
