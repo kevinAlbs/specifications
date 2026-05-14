@@ -946,8 +946,7 @@ remaining operations are not attempted:
 - Create the collection with name `encryptedFields["escCollection"]` as a clustered collection using the options
     `{clusteredIndex: {key: {_id: 1}, unique: true}}`. If `encryptedFields["escCollection"]` is not set, use the
     collection name `enxcol_.<collectionName>.esc`. Creating this collection MUST NOT check if the collection namespace
-    is in the `AutoEncryptionOpts.encryptedFieldsMap`. the collection namespace is in the
-    `AutoEncryptionOpts.encryptedFieldsMap`.
+    is in the `AutoEncryptionOpts.encryptedFieldsMap`.
 - Create the collection with name `encryptedFields["ecocCollection"]` as a clustered collection using the options
     `{clusteredIndex: {key: {_id: 1}, unique: true}}`. If `encryptedFields["ecocCollection"]` is not set, use the
     collection name `enxcol_.<collectionName>.ecoc`. Creating this collection MUST NOT check if the collection namespace
