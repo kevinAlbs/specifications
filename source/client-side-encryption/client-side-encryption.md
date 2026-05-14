@@ -2086,7 +2086,7 @@ collections. But we decided against this. It is much simpler for users to enable
 collections with encryption in the common case of using remote JSONSchemas.
 
 Note, this takes the trade-off of a better user experience over less safety. If a user mistakenly assumes that auto
-encryption occurs on a database, or on a collection doing a `$(graph)lookup` on a collection with auto encryption, they
+encryption occurs on a database, or on a collection doing a `$graphLookup` on a collection with auto encryption, they
 may end up sending unencrypted data.
 
 #### Why are auto encrypted collections configured at level of MongoClient?
