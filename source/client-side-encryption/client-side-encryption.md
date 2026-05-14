@@ -953,7 +953,7 @@ remaining operations are not attempted:
     is in the `AutoEncryptionOpts.encryptedFieldsMap`.
 - Create the collection `collectionName` with `collectionOptions` and the option `encryptedFields` set to the
     `encryptedFields`.
-- Create the the index `{"__safeContent__": 1}` on collection `collectionName`.
+- Create the index `{"__safeContent__": 1}` on collection `collectionName`.
 
 #### Create Encrypted Collection Helper
 
