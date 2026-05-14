@@ -1724,11 +1724,11 @@ propagated to the user.
 
 ## ClientEncryption
 
-The new ClientEncryption type interacts uses libmongocrypt to perform ClientEncryption operations. See the
+The ClientEncryption type uses libmongocrypt to perform ClientEncryption operations. See the
 [libmongocrypt API documentation](https://github.com/mongodb/libmongocrypt/blob/master/src/mongocrypt.h) for more
 information.
 
-The ClientEncryption contains a MongoClient connected to the MongoDB cluster containing the key vault collection. It
+ClientEncryption contains a MongoClient connected to the MongoDB cluster containing the key vault collection. It
 does not contain a MongoClient to mongocryptd.
 
 See
