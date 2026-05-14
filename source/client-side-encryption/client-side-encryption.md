@@ -159,7 +159,7 @@ supports indexed encrypted fields, which are further processed server-side.
 
 **In-Use Encryption**
 
-Is an umbrella term describing the both CSFLE and Queryable Encryption.
+Is an umbrella term describing the CSFLE and Queryable Encryption.
 
 <span id="encryptedFields"></span> **encryptedFields**
 
