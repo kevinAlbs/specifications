@@ -294,7 +294,7 @@ connect to [mongocryptd](#mongocryptd) and instead rely on [crypt_shared](#crypt
 ### crypt_shared
 
 [crypt_shared](#crypt_shared) is a dynamically-loaded C++ library providing query analysis for auto-encryption. It
-replaces [mongocryptd](#mongocryptd) for performing query analysis to -
+replaces [mongocryptd](#mongocryptd) for performing query analysis to
 [mark-up sensitive fields within a command](../bson-binary-encrypted/binary-encrypted.md#intent-to-encrypt).
 
 Drivers are not required to load and interact with [crypt_shared](#crypt_shared) directly. Instead, they inform
